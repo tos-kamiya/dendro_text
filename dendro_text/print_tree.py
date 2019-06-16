@@ -13,7 +13,7 @@ NodeType = TypeVar('NodeType')
 def print_tree(
         node: NodeType,
         child_nodes_extractor: Callable[[NodeType], Union[List[NodeType], None]],
-        leaf_formatter: Callable[[NodeType], str],
+        leaf_node_formatter: Callable[[NodeType], str],
         file: TextIO = sys.stdout):
     padding = TREE_PICTURE_TABLE['p']
     last_indent = []
@@ -34,7 +34,7 @@ def print_tree(
                     pic[i] = 'l' if bi == 0 else 'm' if bi > 0 else 'r'
                 else:
                     pic[i] = 'L' if bi == 0 else 'M' if bi > 0 else 'R'
-            file.write('%s%s %s\n' % ("".join(TREE_PICTURE_TABLE[pi] for pi in pic), padding, leaf_formatter(node)))
+            file.write('%s%s %s\n' % ("".join(TREE_PICTURE_TABLE[pi] for pi in pic), padding, leaf_node_formatter(node)))
             # file.write('%s%s %s\n' % ("".join(pi for pi in pic), '', leaf_formatter(node)))  # for debug
             last_indent[:] = indent
 
@@ -44,13 +44,13 @@ def print_tree(
 if __name__ == '__main__':
     node = ['a', ['b', 'c'], ['d', 'e', ['f']]]
 
-    def child_nodes_extractor(node):
+    def extract_child_nodes(node):
         if isinstance(node, list):
             return node[:]
         else:
             return None  # the node is a leaf
 
-    def leaf_formatter(node):
+    def format_leaf_node(node):
         return node
 
-    print_tree(node, child_nodes_extractor, leaf_formatter)
+    print_tree(node, extract_child_nodes, format_leaf_node)
