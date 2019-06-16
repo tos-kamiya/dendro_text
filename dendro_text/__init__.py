@@ -112,7 +112,7 @@ def main():
                 j += 1
         i += 1
 
-    # clustring docs
+    # do clustering of docs
     len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
     for i in range(len_docs):
@@ -125,7 +125,7 @@ def main():
     result = linkage(darr, method='average')
     # print(repr(result))  # for debug
 
-    # plotting clustring results as dendrogram
+    # plot clustering results as dendrogram
     if option_pyplot:
         import matplotlib.pyplot as plt
         plt.figure()
