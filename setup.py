@@ -6,7 +6,7 @@ with open('requirements.txt') as fp:
 
 setup(
     name='dendro_text',
-    version='0.3',
+    version='0.4',
     packages=setuptools.find_packages(),
     install_requires=install_requires,
     entry_points={

@@ -69,7 +69,8 @@ Usage:
   file_dendro [options] <file>...
                 
 Options:
-  -p --pyplot   Show graphical dendrogram with `matplotlib.pyplot`
+  -p --pyplot           Show graphical dendrogram with `matplotlib.pyplot`
+  -m --max-depth=DEPTH  Flatten the subtrees deeper than this.  
 """
 
 
@@ -77,6 +78,10 @@ def main():
     args = docopt(__doc__)
     files = args['<file>']
     option_pyplot = args['--pyplot']
+    option_max_depth = int(args['--max-depth'] or "0")
+    if option_pyplot and option_max_depth:
+        print("Options --pyplot and --max-depth are mutually exclusive.")
+        return
 
     # read documents from files
     labels: List[LabelNode] = [LabelNode(f) for f in files]
@@ -143,7 +148,7 @@ def main():
             index_to_node.append(n)
         root_node = n
 
-        print_tree(root_node, extract_child_nodes, format_leaf_node)
+        print_tree(root_node, extract_child_nodes, format_leaf_node, max_depth=option_max_depth)
 
 
 if __name__ == '__main__':
