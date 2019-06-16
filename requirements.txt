@@ -2,5 +2,5 @@ numpy
 scipy
 docopt
 pygments
-python-Levenshtein
+pyxDamerauLevenshtein
 # matplotlib  # for option -p

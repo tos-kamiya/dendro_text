@@ -8,7 +8,7 @@ from docopt import docopt
 import pygments.lexers
 import pygments.token
 import pygments.util
-import Levenshtein
+from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 from .print_tree import print_tree
 
@@ -121,11 +121,9 @@ def main():
     len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
     for i in range(len_docs):
+        docsi = ' '.join(docs[i])
         for j in range(len_docs):
-            if i <= j:
-                dmat[i, j] = Levenshtein.distance(' '.join(docs[i]), ' '.join(docs[j]))
-            else:
-                dmat[i, j] = dmat[j, i]
+            dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j])) if i <= j else dmat[j, i]
     darr = distance.squareform(dmat)
     result = linkage(darr, method='average')
     # print(repr(result))  # for debug
