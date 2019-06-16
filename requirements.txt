@@ -1,0 +1,6 @@
+numpy
+scipy
+docopt
+pygments
+python-Levenshtein
+# matplotlib  # for option -p
