@@ -47,17 +47,16 @@ class LabelNode:
         return LABEL_SEPARATOR.join(self.items)
 
 
-def child_nodes_extractor(node: LabelNode) -> Union[List[LabelNode], None]:
+def extract_child_nodes(node: LabelNode) -> Union[List[LabelNode], None]:
     if isinstance(node, list):
         return node[:]
     else:
         return None
 
 
-def leaf_formatter(node: LabelNode) -> str:
+def format_leaf_node(node: LabelNode) -> str:
     assert isinstance(node, LabelNode)
     return node.format()
-
 
 
 __doc__ = """Draw dendrogram of similarity among text files.
@@ -100,16 +99,17 @@ def main():
                 j += 1
         i += 1
 
-    len_docs = len(docs)
-    if len_docs <= 1:
+    # special case: just one file is given or all files are equivalent
+    if len(docs) <= 1:
         if option_pyplot:
             print("All documentss are equivalent to each other.")
         else:
             root_node = labels[0]
-            print_tree(root_node, child_nodes_extractor, leaf_formatter)
+            print_tree(root_node, extract_child_nodes, format_leaf_node)
         return
 
     # do clustering of docs
+    len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
     for i in range(len_docs):
         for j in range(len_docs):
@@ -121,13 +121,13 @@ def main():
     result = linkage(darr, method='average')
     # print(repr(result))  # for debug
 
-    # plot clustering results as dendrogram
+    # plot clustering result as dendrogram
     if option_pyplot:
         import matplotlib.pyplot as plt
         plt.figure()
-        # dendrogram(result, labels=[i for i in range(len_docs)], orientation='right')
         label_strs = [label.format() for label in labels]
         dendrogram(result, labels=label_strs, orientation='right')
+        # dendrogram(result, labels=[i for i in range(len_docs)], orientation='right')  # for debug
         plt.show()
     else:
         # make binary tree of labels
@@ -139,7 +139,7 @@ def main():
             index_to_node.append(n)
         root_node = n
 
-        print_tree(root_node, child_nodes_extractor, leaf_formatter)
+        print_tree(root_node, extract_child_nodes, format_leaf_node)
 
 
 if __name__ == '__main__':
