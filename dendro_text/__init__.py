@@ -14,6 +14,7 @@ from .print_tree import print_tree
 
 
 LABEL_SEPARATOR = ','
+LABEL_HEADER = '\t'
 
 
 def text_split(text: str, filename: str) -> List[str]:
@@ -60,13 +61,13 @@ def extract_child_nodes(node: Node) -> Union[List[Node], None]:
 
 def format_leaf_node(node: LabelNode) -> str:
     assert isinstance(node, LabelNode)
-    return node.format()
+    return LABEL_HEADER + node.format()
 
 
 __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
-  file_dendro [options] <file>...
+  dendro_text [options] <file>...
                 
 Options:
   -p --pyplot           Show graphical dendrogram with `matplotlib.pyplot`
@@ -123,7 +124,7 @@ def main():
     for i in range(len_docs):
         docsi = ' '.join(docs[i])
         for j in range(len_docs):
-            dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j])) if i <= j else dmat[j, i]
+            dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j])) if i < j else 0 if i == j else dmat[j, i]
     darr = distance.squareform(dmat)
     result = linkage(darr, method='average')
     # print(repr(result))  # for debug
