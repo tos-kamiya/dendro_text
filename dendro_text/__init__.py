@@ -47,7 +47,7 @@ class LabelNode:
         return LABEL_SEPARATOR.join(self.items)
 
 
-def extract_child_nodes(node: LabelNode) -> Union[List[LabelNode], None]:
+def extract_child_nodes(node: Union[LabelNode, list]) -> Union[List[LabelNode], None]:
     if isinstance(node, list):
         return node[:]
     else:
