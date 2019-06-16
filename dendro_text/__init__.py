@@ -36,6 +36,10 @@ def text_split(text: str, filename: str) -> List[str]:
     return words
 
 
+Node = Union['LabelNode', List['Node']]
+# Node = Union[LabelNode, List[Node]]  # Will someday become valid with `from __future__ import annotations`?
+
+
 class LabelNode:
     def __init__(self, *items):
         self.items = list(items)
@@ -47,7 +51,7 @@ class LabelNode:
         return LABEL_SEPARATOR.join(self.items)
 
 
-def extract_child_nodes(node: Union[LabelNode, list]) -> Union[List[LabelNode], None]:
+def extract_child_nodes(node: Node) -> Union[List[Node], None]:
     if isinstance(node, list):
         return node[:]
     else:
