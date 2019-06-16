@@ -48,8 +48,8 @@ class LabelNode:
     def merge(self, other):
         self.items.extend(other.items)
 
-    def format(self):
-        return LABEL_SEPARATOR.join(self.items)
+    def format(self, label_separator=LABEL_SEPARATOR):
+        return label_separator.join(self.items)
 
 
 def extract_child_nodes(node: Node) -> Union[List[Node], None]:
@@ -59,9 +59,11 @@ def extract_child_nodes(node: Node) -> Union[List[Node], None]:
         return None
 
 
-def format_leaf_node(node: LabelNode) -> str:
-    assert isinstance(node, LabelNode)
-    return LABEL_HEADER + node.format()
+def gen_leaf_node_formatter(label_separator, label_header):
+    def format_leaf_node(node: LabelNode) -> str:
+        assert isinstance(node, LabelNode)
+        return label_header + node.format(label_separator=label_separator)
+    return format_leaf_node
 
 
 __doc__ = """Draw dendrogram of similarity among text files.
@@ -70,8 +72,10 @@ Usage:
   dendro_text [options] <file>...
                 
 Options:
-  -p --pyplot           Show graphical dendrogram with `matplotlib.pyplot`
-  -m --max-depth=DEPTH  Flatten the subtrees deeper than this.  
+  -p --pyplot               Show graphical dendrogram with `matplotlib.pyplot`
+  -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
+  -s --file-separator=S     File separator (default: tab).
+  -f --field-separator=S    Separator of tree picture and file (default: tab).
 """
 
 
@@ -80,9 +84,15 @@ def main():
     files = args['<file>']
     option_pyplot = args['--pyplot']
     option_max_depth = int(args['--max-depth'] or "0")
+    option_file_separator = args['--file-separator']
+    option_field_separator = args['--field-separator']
     if option_pyplot and option_max_depth:
         print("Options --pyplot and --max-depth are mutually exclusive.")
         return
+
+    format_leaf_node = gen_leaf_node_formatter(
+        option_file_separator or LABEL_SEPARATOR,
+        option_field_separator or LABEL_HEADER)
 
     # read documents from files
     labels: List[LabelNode] = [LabelNode(f) for f in files]

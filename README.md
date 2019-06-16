@@ -32,7 +32,9 @@ dendro_text <file>...
 ### Options
 
 ```
--p --pyplot           Show graphical dendrogram with `matplotlib.pyplot`
--m --max-depth=DEPTH  Flatten the subtrees deeper than this.  
+-p --pyplot               Show graphical dendrogram with `matplotlib.pyplot`
+-m --max-depth=DEPTH      Flatten the subtrees deeper than this.
+-s --file-separator=S     File separator (default: tab).
+-f --field-separator=S    Separator of tree picture and file (default: tab).
 ```
 
