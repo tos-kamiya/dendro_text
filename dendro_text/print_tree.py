@@ -1,11 +1,20 @@
 import sys
+from typing import *
+from typing.io import *
 
 
 TREE_PICTURE_TABLE = {'L': '-+', 'M': ' +', 'R': ' `', 'l': ' |', 'm': ' |', 'r': '  ', 'p': '--'}
 # TREE_PICTURE_TABLE = {'L': '\u2501\u2533', 'M': '\u3000\u254b', 'R': '\u3000\u2514', 'l': '\u3000\u2502', 'm': '\u3000\u2502', 'r': '\u3000\u3000', 'p': '\u2501\u2501'}
 
 
-def print_tree(node, child_nodes_extractor, leaf_formatter, file=sys.stdout):
+NodeType = TypeVar('NodeType')
+
+
+def print_tree(
+        node: NodeType,
+        child_nodes_extractor: Callable[[NodeType], Union[List[NodeType], None]],
+        leaf_formatter: Callable[[NodeType], str],
+        file: TextIO = sys.stdout):
     padding = TREE_PICTURE_TABLE['p']
     last_indent = []
 

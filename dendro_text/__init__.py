@@ -1,4 +1,5 @@
 import sys
+from typing import *
 
 import numpy as np
 import scipy.spatial.distance as distance
@@ -15,7 +16,7 @@ from .print_tree import print_tree
 LABEL_SEPARATOR = ','
 
 
-def text_split(text, filename):
+def text_split(text: str, filename: str) -> List[str]:
     try:
         lexer = pygments.lexers.get_lexer_for_filename(filename)
     except pygments.util.ClassNotFound:
@@ -46,6 +47,19 @@ class LabelNode:
         return LABEL_SEPARATOR.join(self.items)
 
 
+def child_nodes_extractor(node: LabelNode) -> Union[List[LabelNode], None]:
+    if isinstance(node, list):
+        return node[:]
+    else:
+        return None
+
+
+def leaf_formatter(node: LabelNode) -> str:
+    assert isinstance(node, LabelNode)
+    return node.format()
+
+
+
 __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
@@ -62,8 +76,8 @@ def main():
     option_pyplot = args['--pyplot']
 
     # read documents from files
-    labels = [LabelNode(f) for f in files]
-    docs = []
+    labels: List[LabelNode] = [LabelNode(f) for f in files]
+    docs: List[List[str]] = []
     for f in files:
         with open(f, 'r') as inp:
             try:
@@ -86,8 +100,16 @@ def main():
                 j += 1
         i += 1
 
-    # do clustering of docs
     len_docs = len(docs)
+    if len_docs <= 1:
+        if option_pyplot:
+            print("All documentss are equivalent to each other.")
+        else:
+            root_node = labels[0]
+            print_tree(root_node, child_nodes_extractor, leaf_formatter)
+        return
+
+    # do clustering of docs
     dmat = np.zeros([len_docs, len_docs])
     for i in range(len_docs):
         for j in range(len_docs):
@@ -108,7 +130,7 @@ def main():
         dendrogram(result, labels=label_strs, orientation='right')
         plt.show()
     else:
-        # make binay tree of labels
+        # make binary tree of labels
         index_to_node = labels[:]
         for li in result:
             left_i = int(li[0])
@@ -117,16 +139,6 @@ def main():
             index_to_node.append(n)
         root_node = n
 
-        def child_nodes_extractor(node):
-            if isinstance(node, list):
-                return node[:]
-            else:
-                return None
-
-        def leaf_formatter(node):
-            assert isinstance(node, LabelNode)
-            return node.format()
-        
         print_tree(root_node, child_nodes_extractor, leaf_formatter)
 
 
