@@ -10,7 +10,7 @@ import pygments.token
 import pygments.util
 from pyxdameraulevenshtein import damerau_levenshtein_distance
 
-from .print_tree import print_tree
+from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 
 
 LABEL_SEPARATOR = ','
@@ -76,6 +76,7 @@ Options:
   -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
+  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
 """
 
 
@@ -86,6 +87,7 @@ def main():
     option_max_depth = int(args['--max-depth'] or "0")
     option_file_separator = args['--file-separator']
     option_field_separator = args['--field-separator']
+    option_ascii_char_tree = args['--ascii-char-tree']
     if option_pyplot and option_max_depth:
         print("Options --pyplot and --max-depth are mutually exclusive.")
         return
@@ -125,7 +127,9 @@ def main():
             print("All documents are equivalent to each other.")
         else:
             root_node = labels[0]
-            print_tree(root_node, extract_child_nodes, format_leaf_node)
+            print_tree(
+                root_node, extract_child_nodes, format_leaf_node,
+                tree_picture_table=BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else None)
         return
 
     # do clustering of docs
@@ -157,7 +161,10 @@ def main():
             index_to_node.append(n)
         root_node = n
 
-        print_tree(root_node, extract_child_nodes, format_leaf_node, max_depth=option_max_depth)
+        print_tree(
+            root_node, extract_child_nodes, format_leaf_node,
+            max_depth=option_max_depth,
+            tree_picture_table=BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else None)
 
 
 if __name__ == '__main__':

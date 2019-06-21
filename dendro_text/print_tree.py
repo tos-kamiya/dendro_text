@@ -3,8 +3,8 @@ from typing import *
 from typing.io import *
 
 
-TREE_PICTURE_TABLE = {'L': '-+', 'M': ' +', 'R': ' `', 'l': ' |', 'm': ' |', 'r': '  ', 'p': '--'}
-# TREE_PICTURE_TABLE = {'L': '\u2501\u2533', 'M': '\u3000\u254b', 'R': '\u3000\u2514', 'l': '\u3000\u2502', 'm': '\u3000\u2502', 'r': '\u3000\u3000', 'p': '\u2501\u2501'}
+ASCII_TREE_PICTURE_TABLE = {'L': '-+', 'M': ' +', 'R': ' `', 'l': ' |', 'm': ' |', 'r': '  ', 'p': '--'}
+BOX_DRAWING_TREE_PICTURE_TABLE = {'L': '\u2500\u252c', 'M': ' \u251c', 'R': ' \u2514', 'l': ' \u2502', 'm': ' \u2502', 'r': '  ', 'p': '\u2500\u2500'}
 
 
 NodeType = TypeVar('NodeType')
@@ -15,7 +15,11 @@ def print_tree(
         child_nodes_extractor: Callable[[NodeType], Union[List[NodeType], None]],
         leaf_node_formatter: Callable[[NodeType], str],
         max_depth: int = 0,  # no limit
-        file: TextIO = sys.stdout):
+        file: TextIO = sys.stdout,
+        tree_picture_table=None):
+
+    if tree_picture_table is None:
+        tree_picture_table = ASCII_TREE_PICTURE_TABLE
 
     def collect_leaves_iter(node):
         cns = child_nodes_extractor(node)
@@ -26,7 +30,7 @@ def print_tree(
             yield node
 
 
-    padding = TREE_PICTURE_TABLE['p']
+    padding = tree_picture_table['p']
     last_indent = []
 
     def print_leaf(node, indent):
@@ -37,7 +41,7 @@ def print_tree(
                 pic[i] = 'l' if bi == 0 else 'm' if bi > 0 else 'r'
             else:
                 pic[i] = 'L' if bi == 0 else 'M' if bi > 0 else 'R'
-        file.write('%s%s %s\n' % ("".join(TREE_PICTURE_TABLE[pi] for pi in pic), padding, leaf_node_formatter(node)))
+        file.write('%s%s %s\n' % ("".join(tree_picture_table[pi] for pi in pic), padding, leaf_node_formatter(node)))
         # file.write('%s%s %s\n' % ("".join(pi for pi in pic), '', leaf_formatter(node)))  # for debug
 
     def print_tree_i(node, depth, indent):
