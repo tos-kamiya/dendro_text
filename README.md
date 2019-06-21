@@ -37,5 +37,6 @@ dendro_text <file>...
 -s --file-separator=S     File separator (default: comma).
 -f --field-separator=S    Separator of tree picture and file (default: tab).
 -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+--progress                Show progress bar with ETA.
 ```
 

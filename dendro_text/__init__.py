@@ -9,6 +9,7 @@ import pygments.lexers
 import pygments.token
 import pygments.util
 from pyxdameraulevenshtein import damerau_levenshtein_distance
+from tqdm import tqdm
 
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 
@@ -66,6 +67,15 @@ def gen_leaf_node_formatter(label_separator, label_header):
     return format_leaf_node
 
 
+class DummyProgressBar:
+    def __init__(self):
+        pass
+    def update(self, value):
+        pass
+    def close(self):
+        pass
+
+
 __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
@@ -77,6 +87,7 @@ Options:
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+  --progress                Show progress bar with ETA.
 """
 
 
@@ -88,6 +99,7 @@ def main():
     option_file_separator = args['--file-separator']
     option_field_separator = args['--field-separator']
     option_ascii_char_tree = args['--ascii-char-tree']
+    option_progress = args['--progress']
     if option_pyplot and option_max_depth:
         print("Options --pyplot and --max-depth are mutually exclusive.")
         return
@@ -135,10 +147,19 @@ def main():
     # do clustering of docs
     len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
+    pbar = tqdm(total=len_docs * (len_docs - 1) // 2, leave=False) if option_progress else DummyProgressBar()
     for i in range(len_docs):
         docsi = ' '.join(docs[i])
         for j in range(len_docs):
-            dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j])) if i < j else 0 if i == j else dmat[j, i]
+            if i < j:
+                dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j]))
+                pbar.update(1)
+            elif i == j:
+                dmat[i, j] = 0
+            else:
+                assert i > j
+                dmat[i, j] = dmat[j, i]
+    pbar.close()
     darr = distance.squareform(dmat)
     result = linkage(darr, method='average')
     # print(repr(result))  # for debug
