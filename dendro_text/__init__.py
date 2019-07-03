@@ -19,9 +19,13 @@ LABEL_HEADER = '\t'
 
 
 def text_split(text: str, filename: str) -> List[str]:
+    lexer = None
     try:
         lexer = pygments.lexers.get_lexer_for_filename(filename)
     except pygments.util.ClassNotFound:
+        pass
+
+    if lexer is None or filename.endswith('.txt'):  # lexer for '.txt' seems not working
         return text.split()
         
     tokens = lexer.get_tokens(text)
