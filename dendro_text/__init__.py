@@ -173,7 +173,6 @@ def main():
         dds = dds[:option_similar_files_to_file0 + 1]
         docs = [docs[i] for d, i in dds]
         labels = [labels[i] for d, i in dds]
-    print("len(docs)=%d" % len(docs))
 
     # do clustering of docs
     len_docs = len(docs)
