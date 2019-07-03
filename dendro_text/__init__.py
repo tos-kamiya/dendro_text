@@ -14,6 +14,16 @@ from tqdm import tqdm
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 
 
+def uniq(items):
+    item_set = set()
+    uis = []
+    for i in items:
+        if i not in item_set:
+            uis.append(i)
+            item_set.add(i)
+    return uis
+
+
 LABEL_SEPARATOR = ','
 LABEL_HEADER = '\t'
 
@@ -88,6 +98,7 @@ Usage:
 Options:
   -p --pyplot               Show graphical dendrogram with `matplotlib.pyplot`
   -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
+  -n NUM                    Pick up NUM of the files similar to the first file. Drop the other files.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
@@ -100,6 +111,7 @@ def main():
     files = args['<file>']
     option_pyplot = args['--pyplot']
     option_max_depth = int(args['--max-depth'] or "0")
+    option_similar_files_to_file0 = int(args['-n'] or "0")
     option_file_separator = args['--file-separator']
     option_field_separator = args['--field-separator']
     option_ascii_char_tree = args['--ascii-char-tree']
@@ -111,6 +123,8 @@ def main():
     format_leaf_node = gen_leaf_node_formatter(
         option_file_separator or LABEL_SEPARATOR,
         option_field_separator or LABEL_HEADER)
+
+    files = uniq(files)
 
     # read documents from files
     labels: List[LabelNode] = [LabelNode(f) for f in files]
@@ -147,6 +161,19 @@ def main():
                 root_node, extract_child_nodes, format_leaf_node,
                 tree_picture_table=BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else None)
         return
+
+    # pick up similar files to the target file
+    if option_similar_files_to_file0 > 0 and len(docs) > option_similar_files_to_file0 + 1:
+        dds = [(0, 0)]
+        docs0 = ' '.join(docs[0])
+        for i in range(1, len(docs)):
+            d = damerau_levenshtein_distance(docs0, ' '.join(docs[i]))
+            dds.append((d, i))
+        dds.sort()
+        dds = dds[:option_similar_files_to_file0 + 1]
+        docs = [docs[i] for d, i in dds]
+        labels = [labels[i] for d, i in dds]
+    print("len(docs)=%d" % len(docs))
 
     # do clustering of docs
     len_docs = len(docs)
