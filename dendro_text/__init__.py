@@ -241,7 +241,6 @@ def main():
     else:
         if option_pyplot_font:
             sys.exit("Error: Option --pyplot-font is valid only with --pyplot.")
-    print("option_pyplot_font=%s" % option_pyplot_font)
 
     if option_pyplot or option_pyplot_font_names:
         try:
