@@ -32,7 +32,7 @@ dendro_text <file>...
 ### Options
 
 ```
--p --pyplot               Show graphical dendrogram with `matplotlib.pyplot`
+-p --pyplot               Plot dendrogram with `matplotlib.pyplot`
 -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
 -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
 -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
@@ -40,5 +40,7 @@ dendro_text <file>...
 -f --field-separator=S    Separator of tree picture and file (default: tab).
 -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
 --progress                Show progress bar with ETA.
+--pyplot-font-names       List font names can be used in plotting dendrogram.
+--pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
 ```
 

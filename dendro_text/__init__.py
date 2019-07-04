@@ -164,12 +164,22 @@ def print_dendrogram(result, labels, format_leaf_node, max_depth=0, tree_picture
         max_depth=max_depth, tree_picture_table=tree_picture_table)
 
 
-def pyplot_dendrogram(result, label_strs):
+def pyplot_dendrogram(result, label_strs, font=None):
     import matplotlib.pyplot as plt
+    if font:
+        import matplotlib as mpl
+        mpl.rcParams['font.family'] = font
     plt.figure()
     dendrogram(result, labels=label_strs, orientation='right')
     # dendrogram(result, labels=[i for i in range(len_docs)], orientation='right')  # for debug
     plt.show()
+
+
+def do_listing_pyplot_font_names():
+    import matplotlib.font_manager as fm
+    font_names = list(set(f.name for f in fm.fontManager.ttflist))
+    font_names.sort()
+    print('\n'.join(font_names))
 
 
 def do_listing_in_order_of_increasing_distance(
@@ -196,9 +206,10 @@ __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
   dendro_text [options] [-n NUM|-N NUM] <file>...
+  dendro_text --pyplot-font-names
                 
 Options:
-  -p --pyplot               Show graphical dendrogram with `matplotlib.pyplot`
+  -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
   -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
   -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
   -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
@@ -206,6 +217,8 @@ Options:
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
   --progress                Show progress bar with ETA.
+  --pyplot-font-names       List font names can be used in plotting dendrogram.
+  --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
 """
 
 
@@ -220,8 +233,24 @@ def main():
     option_field_separator = args['--field-separator']
     option_ascii_char_tree = args['--ascii-char-tree']
     option_progress = args['--progress']
-    if option_pyplot and option_max_depth:
-        print("Options --pyplot and --max-depth are mutually exclusive.")
+    option_pyplot_font_names = args['--pyplot-font-names']
+    option_pyplot_font = args['--pyplot-font']
+    if option_pyplot:
+        if option_max_depth:
+            sys.exit("Error: Options --pyplot and --max-depth are mutually exclusive.")
+    else:
+        if option_pyplot_font:
+            sys.exit("Error: Option --pyplot-font is valid only with --pyplot.")
+    print("option_pyplot_font=%s" % option_pyplot_font)
+
+    if option_pyplot or option_pyplot_font_names:
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            sys.exit("Error: matplotlib.pyplot is not installed.")
+
+    if option_pyplot_font_names:
+        do_listing_pyplot_font_names()
         return
 
     format_leaf_node = gen_leaf_node_formatter(
@@ -274,7 +303,7 @@ def main():
     # plot clustering result as dendrogram
     if option_pyplot:
         label_strs = [label.format() for label in labels]
-        pyplot_dendrogram(result, label_strs)
+        pyplot_dendrogram(result, label_strs, font=option_pyplot_font)
     else:
         print_dendrogram(
             result, labels, format_leaf_node,
