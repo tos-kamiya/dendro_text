@@ -34,15 +34,15 @@ def print_tree(
     last_indent = []
 
     def print_leaf(node, indent):
-        pic = [None] * len(indent)
+        pic = [''] * len(indent)
         for i in range(len(indent)):
             bi = indent[i]
             if i < len(last_indent) and bi == last_indent[i]:
                 pic[i] = 'l' if bi == 0 else 'm' if bi > 0 else 'r'
             else:
                 pic[i] = 'L' if bi == 0 else 'M' if bi > 0 else 'R'
-        file.write('%s%s %s\n' % ("".join(tree_picture_table[pi] for pi in pic), padding, leaf_node_formatter(node)))
-        # file.write('%s%s %s\n' % ("".join(pi for pi in pic), '', leaf_formatter(node)))  # for debug
+        file.write('%s%s %s\n' % (''.join(tree_picture_table[pi] for pi in pic), padding, leaf_node_formatter(node)))
+        # file.write('%s%s %s\n' % (''.join(pi for pi in pic), '', leaf_formatter(node)))  # for debug
 
     def print_tree_i(node, depth, indent):
         cns = child_nodes_extractor(node)

@@ -150,11 +150,13 @@ def calc_dendrogram(docs, progress=False):
 
 def print_dendrogram(result, labels, format_leaf_node, max_depth=0, tree_picture_table=None):
     index_to_node = labels[:]
+    n = None
     for li in result:
         left_i = int(li[0])
         right_i = int(li[1])
         n = [index_to_node[right_i], index_to_node[left_i]]
         index_to_node.append(n)
+    assert n is not None
     root_node = n
 
     print_tree(
@@ -184,7 +186,7 @@ def do_listing_in_order_of_increasing_distance(
     pbar.close()
     dds.sort()
 
-    if neighbors >= 0:
+    if neighbors > 0:
         dds = dds[:neighbors + 1]
     for dist, doci in dds:
         print("%d%s%s" % (dist, separator, labels[doci]))
@@ -264,7 +266,7 @@ def main():
         return
 
     if option_neighbors > 0 and len(docs) > option_neighbors + 1:
-        docs, labels = select_neighbors(docs, labels, option_neighbors)
+        docs, labels = select_neighbors(docs, labels, option_neighbors, progress=option_progress)
 
     result = calc_dendrogram(docs, progress=option_progress)
     # print(repr(result))  # for debug
