@@ -90,15 +90,36 @@ class DummyProgressBar:
         pass
 
 
+def do_listing_in_order_of_increasing_distance(
+        labels: List[str], docs: List[List[str]],
+        neighbors: int = -1, separator: str = '\t', progress: bool = False) -> None:
+    dds = [(0, 0)]
+    docs0 = ' '.join(docs[0])
+    pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
+        if progress else DummyProgressBar()
+    for i in range(1, len(docs)):
+        d = damerau_levenshtein_distance(docs0, ' '.join(docs[i]))
+        dds.append((d, i))
+        pbar.update(1)
+    pbar.close()
+    dds.sort()
+
+    if neighbors >= 0:
+        dds = dds[:neighbors + 1]
+    for dist, doci in dds:
+        print("%d%s%s" % (dist, separator, labels[doci]))
+
+
 __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
-  dendro_text [options] <file>...
+  dendro_text [options] [-n NUM|-N NUM] <file>...
                 
 Options:
   -p --pyplot               Show graphical dendrogram with `matplotlib.pyplot`
   -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
-  -n NUM                    Pick up top NUM similar files to the first file. Drop the other files.
+  -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
+  -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
@@ -111,7 +132,8 @@ def main():
     files = args['<file>']
     option_pyplot = args['--pyplot']
     option_max_depth = int(args['--max-depth'] or "0")
-    option_similar_files_to_file0 = int(args['-n'] or "0")
+    option_neighbors = int(args['--neighbors'] or "0")
+    option_neighbor_list = int(args['--neighbor-list'] or "-1")
     option_file_separator = args['--file-separator']
     option_field_separator = args['--field-separator']
     option_ascii_char_tree = args['--ascii-char-tree']
@@ -138,6 +160,13 @@ def main():
             words = text_split(doc, f)
             docs.append(words)
 
+    if option_neighbor_list != -1:
+        label_strs = [label.format() for label in labels]
+        do_listing_in_order_of_increasing_distance(
+            label_strs, docs,
+            neighbors=option_neighbor_list, separator=option_field_separator or LABEL_HEADER, progress=option_progress)
+        return
+
     # merge duplicated docs
     i = 0
     while i < len(docs):  # docs is modified inside the following loop
@@ -163,21 +192,26 @@ def main():
         return
 
     # pick up similar files to the target file
-    if option_similar_files_to_file0 > 0 and len(docs) > option_similar_files_to_file0 + 1:
+    if option_neighbors > 0 and len(docs) > option_neighbors + 1:
         dds = [(0, 0)]
         docs0 = ' '.join(docs[0])
+        pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
+            if option_progress else DummyProgressBar()
         for i in range(1, len(docs)):
             d = damerau_levenshtein_distance(docs0, ' '.join(docs[i]))
             dds.append((d, i))
+            pbar.update(1)
+        pbar.close()
         dds.sort()
-        dds = dds[:option_similar_files_to_file0 + 1]
+        dds = dds[:option_neighbors + 1]
         docs = [docs[i] for d, i in dds]
         labels = [labels[i] for d, i in dds]
 
     # do clustering of docs
     len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
-    pbar = tqdm(total=len_docs * (len_docs - 1) // 2, leave=False) if option_progress else DummyProgressBar()
+    pbar = tqdm(desc="Building dendrogram", total=len_docs * (len_docs - 1) // 2, leave=False) \
+        if option_progress else DummyProgressBar()
     for i in range(len_docs):
         docsi = ' '.join(docs[i])
         for j in range(len_docs):
