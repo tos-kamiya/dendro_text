@@ -1,4 +1,7 @@
-# dendro_text
+dendro_text
+===========
+
+[![Build Status](https://travis-ci.org/tos-kamiya/dendro_text.svg?branch=master)](https://travis-ci.org/tos-kamiya/dendro_text)
 
 Draw dendrogram of similarity among text files.
 
