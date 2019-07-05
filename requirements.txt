@@ -1,7 +1,0 @@
-numpy
-scipy
-docopt
-pygments
-pyxDamerauLevenshtein
-# matplotlib  # for option -p
-tqdm

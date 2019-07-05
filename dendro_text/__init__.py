@@ -1,3 +1,4 @@
+import os.path
 import sys
 from typing import *
 
@@ -12,6 +13,10 @@ from pyxdameraulevenshtein import damerau_levenshtein_distance
 from tqdm import tqdm
 
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
+
+
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION'), 'r') as inp:
+    __version__ = inp.read().strip()
 
 
 def uniq(items):
@@ -207,6 +212,7 @@ __doc__ = """Draw dendrogram of similarity among text files.
 Usage:
   dendro_text [options] [-n NUM|-N NUM] <file>...
   dendro_text --pyplot-font-names
+  dendro_text --version
                 
 Options:
   -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
@@ -223,7 +229,7 @@ Options:
 
 
 def main():
-    args = docopt(__doc__)
+    args = docopt(__doc__, version="dendro_text %s" % __version__)
     files = args['<file>']
     option_pyplot = args['--pyplot']
     option_max_depth = int(args['--max-depth'] or "0")
