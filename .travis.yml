@@ -10,5 +10,7 @@ install:
 
 script:
   - bash tests/test_a.sh
-  - bash tests/test_N.sh
+  - bash tests/test_N0.sh
+  - bash tests/test_N3.sh
+  - bash tests/test_identical_files.sh
   - python -m unittest discover tests
