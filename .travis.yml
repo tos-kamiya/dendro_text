@@ -11,3 +11,4 @@ install:
 script:
   - bash tests/test_a.sh
   - bash tests/test_N.sh
+  - python -m unittest discover tests

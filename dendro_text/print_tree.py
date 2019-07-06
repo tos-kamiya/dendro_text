@@ -81,4 +81,4 @@ if __name__ == '__main__':
         return node
 
     print_tree(node, extract_child_nodes, format_leaf_node)
-    print_tree(node, extract_child_nodes, format_leaf_node, max_depth=0)
+    print_tree(node, extract_child_nodes, format_leaf_node, max_depth=1)
