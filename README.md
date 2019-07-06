@@ -83,6 +83,8 @@ $ dendro_text -N0 abccfg.txt *.txt
 
 ## Note
 
+### About requirements.txt
+
 No `requirements.txt` is enclosed. So, instead of `pip install -r requirements.txt`,
 
 ```
@@ -96,3 +98,7 @@ pip install -r (awk 'f;/install_requires =/{f=1}' < setup.cfg | psub)
 ```
 
 in case of `fish` shell.
+
+### Versioning
+
+Versioning of this product follows [Semantic Versioning 2.0.0](https://semver.org/).
