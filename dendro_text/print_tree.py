@@ -1,8 +1,6 @@
 import sys
 from typing import *
-
-if sys.version_info <= (3, 7, 1):
-    from typing.io import *
+from typing.io import *
 
 
 ASCII_TREE_PICTURE_TABLE = {'L': '-+', 'M': ' +', 'R': ' `', 'l': ' |', 'm': ' |', 'r': '  ', 'p': '--'}
