@@ -1,6 +1,9 @@
 import sys
 from typing import *
 
+if sys.version_info <= (3, 7, 1):
+    TextIO = typing.io.TextIO
+
 
 ASCII_TREE_PICTURE_TABLE = {'L': '-+', 'M': ' +', 'R': ' `', 'l': ' |', 'm': ' |', 'r': '  ', 'p': '--'}
 BOX_DRAWING_TREE_PICTURE_TABLE = {'L': '\u2500\u252c', 'M': ' \u251c', 'R': ' \u2514', 'l': ' \u2502', 'm': ' \u2502', 'r': '  ', 'p': '\u2500\u2500'}
