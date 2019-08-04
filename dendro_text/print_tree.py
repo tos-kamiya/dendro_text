@@ -1,6 +1,5 @@
 import sys
 from typing import *
-from typing.io import *
 
 
 ASCII_TREE_PICTURE_TABLE = {'L': '-+', 'M': ' +', 'R': ' `', 'l': ' |', 'm': ' |', 'r': '  ', 'p': '--'}
