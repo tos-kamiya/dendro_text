@@ -41,10 +41,13 @@ dendro_text <file>...
 -s --file-separator=S     File separator (default: comma).
 -f --field-separator=S    Separator of tree picture and file (default: tab).
 -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+--prep=PREPROCESSOR       Perform preprocessing for each input file. 
 --progress                Show progress bar with ETA.
 ```
 
-Pyplot (mathplotlib.pyplot) specific options:
+A preprocessor (of option `--prep`) is a script, which takes a file as an argument, and outputs the preprocessed content of the file.
+
+The following options are Pyplot (mathplotlib.pyplot) specific ones:
 
 ```
 -p --pyplot               Plot dendrogram with `matplotlib.pyplot`

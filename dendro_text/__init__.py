@@ -1,6 +1,7 @@
 import os.path
 import sys
 from typing import *
+import subprocess
 
 import numpy as np
 import scipy.spatial.distance as distance
@@ -222,6 +223,7 @@ Options:
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+  --prep=PREPROCESSOR       Perform preprocessing for each input file. 
   --progress                Show progress bar with ETA.
   --pyplot-font-names       List font names can be used in plotting dendrogram.
   --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
@@ -241,6 +243,7 @@ def main():
     option_progress = args['--progress']
     option_pyplot_font_names = args['--pyplot-font-names']
     option_pyplot_font = args['--pyplot-font']
+    option_prep = args['--prep']
     if option_pyplot:
         if option_max_depth:
             sys.exit("Error: Options --pyplot and --max-depth are mutually exclusive.")
@@ -270,13 +273,21 @@ def main():
     labels: List[LabelNode] = [LabelNode(f) for f in files]
     docs: List[List[str]] = []
     for f in files:
-        with open(f, 'r') as inp:
+        if option_prep:
             try:
-                doc = inp.read()
+                cmd = [option_prep, f]
+                r = subprocess.check_output(cmd, shell=False)
+                doc = r.decode('utf-8')
             except:
-                sys.exit('Error in reading a file: %s' % repr(f))
-            words = text_split(doc, f)
-            docs.append(words)
+                sys.exit('Error in preprocessing a file: %s' % repr(f))
+        else:
+            with open(f, 'r') as inp:
+                try:
+                    doc = inp.read()
+                except:
+                    sys.exit('Error in reading a file: %s' % repr(f))
+        words = text_split(doc, f)
+        docs.append(words)
 
     if option_neighbor_list != -1:
         # `list neighborsP command (option -N)
