@@ -2,6 +2,7 @@ import os.path
 import sys
 from typing import *
 import subprocess
+import tempfile
 
 import numpy as np
 import scipy.spatial.distance as distance
@@ -208,10 +209,36 @@ def do_listing_in_order_of_increasing_distance(
         print("%d%s%s" % (dist, separator, labels[doci]))
 
 
+def do_apply_preorocessors(preprocessors: List[str], target_file: str, temp_dir: str) -> str:
+    if len(preprocessors) == 1:
+        try:
+            cmd = ' '.join([preprocessors[0], target_file])
+            r = subprocess.check_output(cmd, shell=True)
+            doc = r.decode('utf-8')
+            return doc
+        except:
+            sys.exit('Error in preprocessing a file: %s' % repr(target_file))
+
+    base_name = os.path.basename(target_file)
+    tmp_file = os.path.join(temp_dir, base_name)
+    with open(target_file, 'rb') as inp:
+        tmp_file_content: bytes = inp.read()
+    for prep in preprocessors:
+        with open(tmp_file, 'wb') as outp:
+            outp.write(tmp_file_content)
+        try:
+            cmd = ' '.join([prep, tmp_file])
+            tmp_file_content = subprocess.check_output(cmd, shell=True)
+        except:
+            sys.exit('Error in preprocessing a file: %s' % repr(target_file))
+    doc = tmp_file_content.decode('utf-8')
+    return doc
+
+
 __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
-  dendro_text [options] [-n NUM|-N NUM] <file>...
+  dendro_text [options] [-n NUM|-N NUM] [--prep=PREPROCESSOR]... <file>...
   dendro_text --pyplot-font-names
   dendro_text --version
                 
@@ -270,16 +297,13 @@ def main():
     files = uniq(files)
 
     # read documents from files
+    if option_prep:
+        temp_dir = tempfile.TemporaryDirectory()
     labels: List[LabelNode] = [LabelNode(f) for f in files]
     docs: List[List[str]] = []
     for f in files:
         if option_prep:
-            try:
-                cmd = [option_prep, f]
-                r = subprocess.check_output(cmd, shell=False)
-                doc = r.decode('utf-8')
-            except:
-                sys.exit('Error in preprocessing a file: %s' % repr(f))
+            doc = do_apply_preorocessors(option_prep, f, temp_dir.name)
         else:
             with open(f, 'r') as inp:
                 try:
@@ -288,6 +312,8 @@ def main():
                     sys.exit('Error in reading a file: %s' % repr(f))
         words = text_split(doc, f)
         docs.append(words)
+    if option_prep:
+        temp_dir.cleanup()
 
     if option_neighbor_list != -1:
         # `list neighborsP command (option -N)
