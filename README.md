@@ -97,7 +97,7 @@ For example, in the following command line,
 $ dendro_text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
 ```
 
-A preprocessor scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
+Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
 
 ### Missing requirements.txt
 
