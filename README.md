@@ -45,8 +45,6 @@ dendro_text <file>...
 --progress                Show progress bar with ETA.
 ```
 
-A preprocessor (of option `--prep`) is a script, which takes a file as an argument, and outputs the preprocessed content of the file.
-
 The following options are Pyplot (mathplotlib.pyplot) specific ones:
 
 ```
@@ -86,7 +84,22 @@ $ dendro_text -N0 abccfg.txt *.txt
 
 ## Note
 
-### About requirements.txt
+### Multiple option --prep's
+
+A preprocessor (argument of option `--prep`) is a script or a command line, which takes a file as an input file, and outputs the preprocessed content of the file to the standard output.
+
+Multiple preprocessors (preprocessing scripts) can be added by giving multiple option `--prep`'s. In such a case, each preprocessing script will get a temporary file on a temporary directory.
+The base name of the temporary file is the same as the original input file, but the directory is not. 
+
+For example, in the following command line,
+
+```sh
+$ dendro_text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
+```
+
+A preprocessor scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
+
+### Missing requirements.txt
 
 No `requirements.txt` is enclosed. If you need it, generate as follows:
 
