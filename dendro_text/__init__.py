@@ -133,7 +133,7 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     return docs, labels
 
 
-def calc_dendrogram(docs, progress=False):
+def calc_dendrogram(docs, progress=False, files=None):
     len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
     pbar = tqdm(desc="Building dendrogram", total=len_docs * (len_docs - 1) // 2, leave=False) \
@@ -142,7 +142,14 @@ def calc_dendrogram(docs, progress=False):
         docsi = ' '.join(docs[i])
         for j in range(len_docs):
             if i < j:
-                dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j]))
+                try:
+                    dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j]))
+                except KeyboardInterrupt as e:
+                    if files is not None:
+                        print("files[i] = %s" % files[i])
+                        print("> Ctrl+C signal detected while comparing the following files\n> #%d: %s\n> #%d: %s" % \
+                                ((i + 1), files[i], (j + 1), files[j]), file=sys.stderr)
+                    raise e
                 pbar.update(1)
             elif i == j:
                 dmat[i, j] = 0
@@ -339,7 +346,7 @@ def main():
     if option_neighbors > 0 and len(docs) > option_neighbors + 1:
         docs, labels = select_neighbors(docs, labels, option_neighbors, progress=option_progress)
 
-    result = calc_dendrogram(docs, progress=option_progress)
+    result = calc_dendrogram(docs, progress=option_progress, files=[ln.items[0] for ln in labels])
     # print(repr(result))  # for debug
 
     # plot clustering result as dendrogram
