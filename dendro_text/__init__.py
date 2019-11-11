@@ -137,10 +137,11 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
 def calc_dendrogram(docs, progress=False, files=None, workers=None):
     len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
+    doctexts = [' '.join(d) for d in docs]
     if workers is not None:
         def dld(i, j):
             if i < j:
-                return (i, j), damerau_levenshtein_distance(' '.join(docs[i]), ' '.join(docs[j]))
+                return (i, j), damerau_levenshtein_distance(doctexts[i], doctexts[j])
             else:
                 return None, None
         dlds = Parallel(n_jobs=workers)(delayed(dld)(i, j) for i in range(len_docs) for j in range(len_docs))
@@ -153,16 +154,15 @@ def calc_dendrogram(docs, progress=False, files=None, workers=None):
                     dmat[i, j] = 0
                 else:
                     assert i > j
-                    dmat[i, j] = dmat[j, i]
+                    dmat[i, j] = dld_tbl[(j, i)]
     else:
         pbar = tqdm(desc="Building dendrogram", total=len_docs * (len_docs - 1) // 2, leave=False) \
             if progress else DummyProgressBar()
         for i in range(len_docs):
-            docsi = ' '.join(docs[i])
             for j in range(len_docs):
                 if i < j:
                     try:
-                        dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j]))
+                        dmat[i, j] = damerau_levenshtein_distance(doctexts[i], doctexts[j])
                     except KeyboardInterrupt as e:
                         if files is not None:
                             print("files[i] = %s" % files[i])
