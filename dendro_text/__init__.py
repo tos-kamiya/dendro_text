@@ -13,6 +13,7 @@ import pygments.token
 import pygments.util
 from pyxdameraulevenshtein import damerau_levenshtein_distance
 from tqdm import tqdm
+from joblib import Parallel, delayed
 
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 
@@ -133,30 +134,48 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     return docs, labels
 
 
-def calc_dendrogram(docs, progress=False, files=None):
+def calc_dendrogram(docs, progress=False, files=None, workers=None):
     len_docs = len(docs)
     dmat = np.zeros([len_docs, len_docs])
-    pbar = tqdm(desc="Building dendrogram", total=len_docs * (len_docs - 1) // 2, leave=False) \
-        if progress else DummyProgressBar()
-    for i in range(len_docs):
-        docsi = ' '.join(docs[i])
-        for j in range(len_docs):
+    if workers is not None:
+        def dld(i, j):
             if i < j:
-                try:
-                    dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j]))
-                except KeyboardInterrupt as e:
-                    if files is not None:
-                        print("files[i] = %s" % files[i])
-                        print("> Ctrl+C signal detected while comparing the following files\n> #%d: %s\n> #%d: %s" % \
-                                ((i + 1), files[i], (j + 1), files[j]), file=sys.stderr)
-                    raise e
-                pbar.update(1)
-            elif i == j:
-                dmat[i, j] = 0
+                return (i, j), damerau_levenshtein_distance(' '.join(docs[i]), ' '.join(docs[j]))
             else:
-                assert i > j
-                dmat[i, j] = dmat[j, i]
-    pbar.close()
+                return None, None
+        dlds = Parallel(n_jobs=workers)(delayed(dld)(i, j) for i in range(len_docs) for j in range(len_docs))
+        dld_tbl = dict((ij, v) for ij, v in dlds if ij is not None)
+        for i in range(len_docs):
+            for j in range(len_docs):
+                if i < j:
+                    dmat[i, j] = dld_tbl[(i, j)]
+                elif i == j:
+                    dmat[i, j] = 0
+                else:
+                    assert i > j
+                    dmat[i, j] = dmat[j, i]
+    else:
+        pbar = tqdm(desc="Building dendrogram", total=len_docs * (len_docs - 1) // 2, leave=False) \
+            if progress else DummyProgressBar()
+        for i in range(len_docs):
+            docsi = ' '.join(docs[i])
+            for j in range(len_docs):
+                if i < j:
+                    try:
+                        dmat[i, j] = damerau_levenshtein_distance(docsi, ' '.join(docs[j]))
+                    except KeyboardInterrupt as e:
+                        if files is not None:
+                            print("files[i] = %s" % files[i])
+                            print("> Ctrl+C signal detected while comparing the following files\n> #%d: %s\n> #%d: %s" % \
+                                    ((i + 1), files[i], (j + 1), files[j]), file=sys.stderr)
+                        raise e
+                    pbar.update(1)
+                elif i == j:
+                    dmat[i, j] = 0
+                else:
+                    assert i > j
+                    dmat[i, j] = dmat[j, i]
+        pbar.close()
     darr = distance.squareform(dmat)
     result = linkage(darr, method='average')
     return result
@@ -257,6 +276,7 @@ Options:
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+  -j NUM                    Parallel execution. Number of worker processes.
   --prep=PREPROCESSOR       Perform preprocessing for each input file. 
   --progress                Show progress bar with ETA.
   --pyplot-font-names       List font names can be used in plotting dendrogram.
@@ -278,6 +298,7 @@ def main():
     option_pyplot_font_names = args['--pyplot-font-names']
     option_pyplot_font = args['--pyplot-font']
     option_prep = args['--prep']
+    option_workers = int(args['-j']) if args['-j'] else None
     if option_pyplot:
         if option_max_depth:
             sys.exit("Error: Options --pyplot and --max-depth are mutually exclusive.")
@@ -291,6 +312,9 @@ def main():
         except:
             sys.exit("Error: matplotlib.pyplot is not installed.")
 
+    if option_progress and option_workers:
+        sys.exit("Error: Options --progress and -j are mutually exclusive.")
+
     if option_pyplot_font_names:
         do_listing_pyplot_font_names()
         return
@@ -303,12 +327,7 @@ def main():
 
     files = uniq(files)
 
-    # read documents from files
-    if option_prep:
-        temp_dir = tempfile.TemporaryDirectory()
-    labels: List[LabelNode] = [LabelNode(f) for f in files]
-    docs: List[List[str]] = []
-    for f in files:
+    def read_doc(f):
         if option_prep:
             doc = do_apply_preorocessors(option_prep, f, temp_dir.name)
         else:
@@ -318,7 +337,16 @@ def main():
                 except:
                     sys.exit('Error in reading a file: %s' % repr(f))
         words = text_split(doc, f)
-        docs.append(words)
+        return words
+
+    # read documents from files
+    if option_prep:
+        temp_dir = tempfile.TemporaryDirectory()
+    labels: List[LabelNode] = [LabelNode(f) for f in files]
+    if option_workers is not None:
+        docs = Parallel(n_jobs=option_workers)(delayed(read_doc)(f) for f in files)
+    else:
+        docs = [read_doc(f) for f in files]
     if option_prep:
         temp_dir.cleanup()
 
@@ -346,7 +374,7 @@ def main():
     if option_neighbors > 0 and len(docs) > option_neighbors + 1:
         docs, labels = select_neighbors(docs, labels, option_neighbors, progress=option_progress)
 
-    result = calc_dendrogram(docs, progress=option_progress, files=[ln.items[0] for ln in labels])
+    result = calc_dendrogram(docs, progress=option_progress, files=[ln.items[0] for ln in labels], workers=option_workers)
     # print(repr(result))  # for debug
 
     # plot clustering result as dendrogram
