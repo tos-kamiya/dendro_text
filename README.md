@@ -99,15 +99,3 @@ $ dendro_text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
 ```
 
 Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
-
-### Missing requirements.txt
-
-No `requirements.txt` is enclosed. If you need it, generate as follows:
-
-```
-awk 'f;/install_requires =/{f=1}' < setup.cfg > requirements.txt
-```
-
-### Versioning
-
-Versioning of this product follows [Semantic Versioning 2.0.0](https://semver.org/).
