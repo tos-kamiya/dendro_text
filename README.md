@@ -1,7 +1,7 @@
+[![Tests](https://github.com/tos-kamiya/dendro_text/actions/workflows/tests.yaml/badge.svg)](https://github.com/tos-kamiya/dendro_text/actions/workflows/tests.yaml)
+
 dendro_text
 ===========
-
-[![Build Status](https://travis-ci.org/tos-kamiya/dendro_text.svg?branch=main)](https://travis-ci.org/tos-kamiya/dendro_text)
 
 Draw dendrogram of similarity among text files.
 
