@@ -1,19 +1,18 @@
+from typing import List, Union
+
 import os.path
 import sys
-from typing import *
 import subprocess
 import tempfile
+from multiprocessing import Pool
 
 import numpy as np
-import scipy.spatial.distance as distance
-from scipy.cluster.hierarchy import linkage, dendrogram
 from docopt import docopt
 import pygments.lexers
 import pygments.token
 import pygments.util
 from pyxdameraulevenshtein import damerau_levenshtein_distance
 from tqdm import tqdm
-from joblib import Parallel, delayed
 
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 
@@ -45,7 +44,7 @@ def text_split(text: str, filename: str) -> List[str]:
 
     if lexer is None or filename.endswith('.txt'):  # lexer for '.txt' seems not working
         return text.split()
-        
+
     tokens = lexer.get_tokens(text)
     words = []
     for t in tokens:
@@ -67,7 +66,7 @@ Node = Union['LabelNode', List['Node']]
 class LabelNode:
     def __init__(self, *items):
         self.items = list(items)
-    
+
     def merge(self, other):
         self.items.extend(other.items)
 
@@ -134,48 +133,43 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     return docs, labels
 
 
+def dld(i_j_doctexts):
+    i, j, doctexts = i_j_doctexts
+    return (i, j), damerau_levenshtein_distance(doctexts[i], doctexts[j])
+
+
 def calc_dendrogram(docs, progress=False, files=None, workers=None):
+    import scipy.spatial.distance as distance
+    from scipy.cluster.hierarchy import linkage
+
+    if workers is None:
+        workers = 1
+
     len_docs = len(docs)
-    dmat = np.zeros([len_docs, len_docs])
     doctexts = [' '.join(d) for d in docs]
-    if workers is not None:
-        def dld(i, j):
+    jobs = [(i, j, doctexts) for i in range(len_docs) for j in range(len_docs) if i < j]
+    pbar = tqdm(desc="Building dendrogram", total=len(jobs), leave=False) \
+        if progress else DummyProgressBar()
+    dld_tbl = dict()
+    try:
+        with Pool(workers) as pool:
+            for ij, v in pool.imap_unordered(dld, jobs):
+                dld_tbl[ij] = v
+                pbar.update(1)
+    except KeyboardInterrupt as e:
+        print("\nWarning: Stopped by Ctl+C. Show the results for now.", file=sys.stderr)
+    pbar.close()
+
+    dmat = np.zeros([len_docs, len_docs])
+    for i in range(len_docs):
+        for j in range(len_docs):
             if i < j:
-                return (i, j), damerau_levenshtein_distance(doctexts[i], doctexts[j])
+                dmat[i, j] = dld_tbl[(i, j)]
+            elif i == j:
+                dmat[i, j] = 0
             else:
-                return None, None
-        dlds = Parallel(n_jobs=workers)(delayed(dld)(i, j) for i in range(len_docs) for j in range(len_docs))
-        dld_tbl = dict((ij, v) for ij, v in dlds if ij is not None)
-        for i in range(len_docs):
-            for j in range(len_docs):
-                if i < j:
-                    dmat[i, j] = dld_tbl[(i, j)]
-                elif i == j:
-                    dmat[i, j] = 0
-                else:
-                    assert i > j
-                    dmat[i, j] = dld_tbl[(j, i)]
-    else:
-        pbar = tqdm(desc="Building dendrogram", total=len_docs * (len_docs - 1) // 2, leave=False) \
-            if progress else DummyProgressBar()
-        for i in range(len_docs):
-            for j in range(len_docs):
-                if i < j:
-                    try:
-                        dmat[i, j] = damerau_levenshtein_distance(doctexts[i], doctexts[j])
-                    except KeyboardInterrupt as e:
-                        if files is not None:
-                            print("files[i] = %s" % files[i])
-                            print("> Ctrl+C signal detected while comparing the following files\n> #%d: %s\n> #%d: %s" % \
-                                    ((i + 1), files[i], (j + 1), files[j]), file=sys.stderr)
-                        raise e
-                    pbar.update(1)
-                elif i == j:
-                    dmat[i, j] = 0
-                else:
-                    assert i > j
-                    dmat[i, j] = dmat[j, i]
-        pbar.close()
+                assert i > j
+                dmat[i, j] = dld_tbl[(j, i)]
     darr = distance.squareform(dmat)
     result = linkage(darr, method='average')
     return result
@@ -198,6 +192,7 @@ def print_dendrogram(result, labels, format_leaf_node, max_depth=0, tree_picture
 
 
 def pyplot_dendrogram(result, label_strs, font=None):
+    from scipy.cluster.hierarchy import dendrogram
     import matplotlib.pyplot as plt
     if font:
         import matplotlib as mpl
@@ -242,8 +237,9 @@ def do_apply_preorocessors(preprocessors: List[str], target_file: str, temp_dir:
             r = subprocess.check_output(cmd, shell=True)
             doc = r.decode('utf-8')
             return doc
-        except:
+        except Exception as e:
             sys.exit('Error in preprocessing a file: %s' % repr(target_file))
+            raise e
 
     base_name = os.path.basename(target_file)
     tmp_file = os.path.join(temp_dir, base_name)
@@ -255,8 +251,9 @@ def do_apply_preorocessors(preprocessors: List[str], target_file: str, temp_dir:
         try:
             cmd = ' '.join([prep, tmp_file])
             tmp_file_content = subprocess.check_output(cmd, shell=True)
-        except:
+        except Exception as e:
             sys.exit('Error in preprocessing a file: %s' % repr(target_file))
+            raise e
     doc = tmp_file_content.decode('utf-8')
     return doc
 
@@ -267,8 +264,9 @@ Usage:
   dendro_text [options] [-n NUM|-N NUM] [--prep=PREPROCESSOR]... <file>...
   dendro_text --pyplot-font-names
   dendro_text --version
-                
+
 Options:
+  -l --line-by-line         Compare texts in a line-by-line manner.
   -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
   -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
   -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
@@ -277,7 +275,7 @@ Options:
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
   -j NUM                    Parallel execution. Number of worker processes.
-  --prep=PREPROCESSOR       Perform preprocessing for each input file. 
+  --prep=PREPROCESSOR       Perform preprocessing for each input file.
   --progress                Show progress bar with ETA.
   --pyplot-font-names       List font names can be used in plotting dendrogram.
   --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
@@ -287,6 +285,7 @@ Options:
 def main():
     args = docopt(__doc__, version="dendro_text %s" % __version__)
     files = args['<file>']
+    option_line_by_line = args['--line-by-line']
     option_pyplot = args['--pyplot']
     option_max_depth = int(args['--max-depth'] or "0")
     option_neighbors = int(args['--neighbors'] or "0")
@@ -309,11 +308,8 @@ def main():
     if option_pyplot or option_pyplot_font_names:
         try:
             import matplotlib.pyplot as plt
-        except:
+        except ImportError as _e:
             sys.exit("Error: matplotlib.pyplot is not installed.")
-
-    if option_progress and option_workers:
-        sys.exit("Error: Options --progress and -j are mutually exclusive.")
 
     if option_pyplot_font_names:
         do_listing_pyplot_font_names()
@@ -334,20 +330,19 @@ def main():
             with open(f, 'r') as inp:
                 try:
                     doc = inp.read()
-                except:
+                except Exception as _e:
                     sys.exit('Error in reading a file: %s' % repr(f))
-        words = text_split(doc, f)
+        if option_line_by_line:
+            words = doc.split()
+        else:
+            words = text_split(doc, f)
         return words
 
     # read documents from files
-    if option_prep:
-        temp_dir = tempfile.TemporaryDirectory()
+    temp_dir = tempfile.TemporaryDirectory() if option_prep else None
     labels: List[LabelNode] = [LabelNode(f) for f in files]
-    if option_workers is not None:
-        docs = Parallel(n_jobs=option_workers)(delayed(read_doc)(f) for f in files)
-    else:
-        docs = [read_doc(f) for f in files]
-    if option_prep:
+    docs = [read_doc(f) for f in files]
+    if temp_dir is not None:
         temp_dir.cleanup()
 
     if option_neighbor_list != -1:
