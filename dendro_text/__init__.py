@@ -268,7 +268,7 @@ Usage:
 Options:
   -l --line-by-line         Compare texts in a line-by-line manner.
   -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
-  -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
+  -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
   -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
   -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
   -s --file-separator=S     File separator (default: comma).
