@@ -6,14 +6,14 @@ dendro_text
 Draw dendrogram of similarity among text files.
 
 Similarity is measured in terms of **Damerau-Levenshtein edit distance**.
-Distance of given two texts is count of inserted, deleted, and moved characters
-required to modify one text to the other (smaller means more similar).
+Distance of given two texts is count of inserted, deleted, and moved characters required to modify one text to the other (smaller means more similar).
 
-In addition that, for source files of programming languages,lexical analysis / 
-normalization are performed to **normalize white spaces** in them.
-So that two source files having different indentations of empty lines are 
-judged identical ones.
- 
+Features:
+
+* **Parallel execution** option that supports execution on multiple CPU cores.
+
+* **Lexical analysis / normalization** for source files of programming languages in order to normalize white spaces in such files.
+
 ## Install
 
 ```
@@ -35,13 +35,14 @@ dendro_text <file>...
 ### Options
 
 ```
+-l --line-by-line         Compare texts in a line-by-line manner.
 -m --max-depth=DEPTH      Flatten the subtrees deeper than this.
 -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
 -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
 -s --file-separator=S     File separator (default: comma).
 -f --field-separator=S    Separator of tree picture and file (default: tab).
 -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
---prep=PREPROCESSOR       Perform preprocessing for each input file. 
+--prep=PREPROCESSOR       Perform preprocessing for each input file.
 --progress                Show progress bar with ETA.
 ```
 
