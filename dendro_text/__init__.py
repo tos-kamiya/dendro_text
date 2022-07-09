@@ -11,10 +11,13 @@ from docopt import docopt
 import pygments.lexers
 import pygments.token
 import pygments.util
-from pyxdameraulevenshtein import damerau_levenshtein_distance
+from rapidfuzz.distance import Levenshtein
 from tqdm import tqdm
 
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
+
+
+levenshtein_distance = Levenshtein.distance
 
 
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION'), 'r') as inp:
@@ -122,7 +125,7 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
         if progress else DummyProgressBar()
     for i in range(1, len(docs)):
-        d = damerau_levenshtein_distance(docs0, ' '.join(docs[i]))
+        d = levenshtein_distance(docs0, ' '.join(docs[i]))
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
@@ -135,7 +138,7 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
 
 def dld(i_j_doctexts):
     i, j, doctexts = i_j_doctexts
-    return (i, j), damerau_levenshtein_distance(doctexts[i], doctexts[j])
+    return (i, j), levenshtein_distance(doctexts[i], doctexts[j])
 
 
 def calc_dendrogram(docs, progress=False, files=None, workers=None):
@@ -218,7 +221,7 @@ def do_listing_in_order_of_increasing_distance(
     pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
         if progress else DummyProgressBar()
     for i in range(1, len(docs)):
-        d = damerau_levenshtein_distance(docs0, ' '.join(docs[i]))
+        d = levenshtein_distance(docs0, ' '.join(docs[i]))
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
