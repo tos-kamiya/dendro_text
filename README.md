@@ -17,7 +17,7 @@ Features:
 ## Install
 
 ```
-pip install git+https://github.com/tos-kamiya/dendro_text.git
+pip install dendro_text
 ```
 
 To uninstall,
