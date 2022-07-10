@@ -16,21 +16,10 @@ Features:
 
 ## Installation
 
-The `dendro_text` uses an extension module written in Cython. **Make sure you have the latest version of Cyhton before installing.**
+To install,
 
 ```sh
-pip uninstall dendro_text
-pip install --upgrade cython
 pip install dendro_text
-```
-
-If Cython is not installed, the `dendro_text` use a Python module as a fallback.
-To check whether the cython extension is installed or not, run it with the `--version` option.
-If the output line contains "engine=cython", then the cython module is used.
-
-```
-$ dendro_text --version
-dendro_text [engine=cython] 1.1.0
 ```
 
 To uninstall,
