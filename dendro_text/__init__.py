@@ -11,8 +11,13 @@ from docopt import docopt
 import pygments.lexers
 import pygments.token
 import pygments.util
-from pyxdameraulevenshtein import damerau_levenshtein_distance
 from tqdm import tqdm
+try:
+    from .dld import distance_int
+    ENGINE = "cython"
+except:
+    from .dld_fallback import distance_int
+    ENGINE = "purepython"
 
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 
@@ -29,6 +34,42 @@ def uniq(items):
             uis.append(i)
             item_set.add(i)
     return uis
+
+
+def distance_str(s1: str, s2: str) -> int:
+    w2i = dict()
+
+    def convert(s: str) -> List[int]:
+        a1 = []
+        for w in s.split(' '):
+            i = w2i.get(w, None)
+            if i is None:
+                i = len(w2i) + 1
+                w2i[w] = i
+            a1.append(i)
+        return a1
+
+    a1 = convert(s1)
+    a2 = convert(s2)
+    return distance_int(a1, a2)
+
+
+def distance_list(lst1: List[str], lst2: List[str]) -> int:
+    w2i = dict()
+
+    def convert(lst: List[str]) -> List[int]:
+        a1 = []
+        for w in lst:
+            i = w2i.get(w, None)
+            if i is None:
+                i = len(w2i) + 1
+                w2i[w] = i
+            a1.append(i)
+        return a1
+
+    a1 = convert(lst1)
+    a2 = convert(lst2)
+    return distance_int(a1, a2)
 
 
 LABEL_SEPARATOR = ','
@@ -118,11 +159,10 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     docs = docs[:]
     labels = labels[:]
     dds = [(0, 0)]
-    docs0 = ' '.join(docs[0])
     pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
         if progress else DummyProgressBar()
     for i in range(1, len(docs)):
-        d = damerau_levenshtein_distance(docs0, ' '.join(docs[i]))
+        d = distance_list(docs[0], docs[i])
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
@@ -133,9 +173,9 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     return docs, labels
 
 
-def dld(i_j_doctexts):
-    i, j, doctexts = i_j_doctexts
-    return (i, j), damerau_levenshtein_distance(doctexts[i], doctexts[j])
+def dld(i_j_docs):
+    i, j, docs = i_j_docs
+    return (i, j), distance_list(docs[i], docs[j])
 
 
 def calc_dendrogram(docs, progress=False, files=None, workers=None):
@@ -146,8 +186,7 @@ def calc_dendrogram(docs, progress=False, files=None, workers=None):
         workers = 1
 
     len_docs = len(docs)
-    doctexts = [' '.join(d) for d in docs]
-    jobs = [(i, j, doctexts) for i in range(len_docs) for j in range(len_docs) if i < j]
+    jobs = [(i, j, docs) for i in range(len_docs) for j in range(len_docs) if i < j]
     pbar = tqdm(desc="Building dendrogram", total=len(jobs), leave=False) \
         if progress else DummyProgressBar()
     dld_tbl = dict()
@@ -214,11 +253,10 @@ def do_listing_in_order_of_increasing_distance(
         labels: List[str], docs: List[List[str]],
         neighbors: int = -1, separator: str = '\t', progress: bool = False) -> None:
     dds = [(0, 0)]
-    docs0 = ' '.join(docs[0])
     pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
         if progress else DummyProgressBar()
     for i in range(1, len(docs)):
-        d = damerau_levenshtein_distance(docs0, ' '.join(docs[i]))
+        d = distance_list(docs, docs[i])
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
@@ -283,7 +321,7 @@ Options:
 
 
 def main():
-    args = docopt(__doc__, version="dendro_text %s" % __version__)
+    args = docopt(__doc__, version="dendro_text [engine=%s] %s" % (ENGINE, __version__))
     files = args['<file>']
     option_line_by_line = args['--line-by-line']
     option_pyplot = args['--pyplot']
