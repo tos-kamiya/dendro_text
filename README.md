@@ -10,9 +10,11 @@ Distance of given two texts is count of inserted, deleted, and moved characters 
 
 Features:
 
-* **Parallel execution** option that supports execution on multiple CPU cores.
+* **Parallel execution**: Supports execution on multiple CPU cores.
 
-* **Lexical analysis / normalization** for source files of programming languages in order to normalize white spaces in such files.
+* **Options in tokenization**: By default, the text is compared with a sequence of words extracted by splitting inputtext into different character types. Optionally, you can compare texts line by line, character by character, or token by token as extracted with lexical analyzers of programming languages.
+
+* **File-centric search**: A function to list files in order of similarity to a given file.
 
 ## Installation
 
@@ -36,28 +38,45 @@ dendro_text <file>...
 
 ### Options
 
+#### Tokenization/preprocessing
+
 ```
   -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
+  -W --show-words           Show words extracted from the input file (No comparison is performed).
+  --prep=PREPROCESSOR       Perform preprocessing for each input file.
+```
+
+#### Dendrogram format
+
+```
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
-  -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
-  -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
+  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
-  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+```
+
+#### Parallel execution
+
+```
   -j NUM                    Parallel execution. Number of worker processes.
-  --prep=PREPROCESSOR       Perform preprocessing for each input file.
   --progress                Show progress bar with ETA.
-  -W --show-words           Show words extracted from the input file (No comparison is performed).
 ```
 
-The following options are Pyplot (mathplotlib.pyplot) specific ones:
+#### File-centric search mode
 
 ```
--p --pyplot               Plot dendrogram with `matplotlib.pyplot`
---pyplot-font-names       List font names can be used in plotting dendrogram.
---pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
+  -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
+  -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
+```
+
+#### Pyplot ouutput mode
+
+```
+  -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
+  --pyplot-font-names       List font names can be used in plotting dendrogram.
+  --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
 ```
 
 ### Example

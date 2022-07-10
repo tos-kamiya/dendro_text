@@ -240,17 +240,17 @@ Options:
   -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
-  -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
+  -W --show-words           Show words extracted from the input file (No comparison is performed).
+  --prep=PREPROCESSOR       Perform preprocessing for each input file.
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
-  -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
-  -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
+  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
-  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
   -j NUM                    Parallel execution. Number of worker processes.
-  --prep=PREPROCESSOR       Perform preprocessing for each input file.
   --progress                Show progress bar with ETA.
-  -W --show-words           Show words extracted from the input file (No comparison is performed).
+  -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
+  -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
+  -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
   --pyplot-font-names       List font names can be used in plotting dendrogram.
   --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
 """
