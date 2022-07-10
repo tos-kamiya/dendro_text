@@ -1,3 +1,6 @@
+from typing import List
+
+
 # ref: https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
 
 
@@ -20,3 +23,21 @@ def distance_int(s1, s2):
         previous_row = current_row
 
     return previous_row[-1]
+
+
+def distance_list(lst1: List[str], lst2: List[str]) -> int:
+    w2i = dict()
+
+    def convert(lst: List[str]) -> List[int]:
+        a1 = []
+        for w in lst:
+            i = w2i.get(w, None)
+            if i is None:
+                i = len(w2i) + 1
+                w2i[w] = i
+            a1.append(i)
+        return a1
+
+    a1 = convert(lst1)
+    a2 = convert(lst2)
+    return distance_int(a1, a2)

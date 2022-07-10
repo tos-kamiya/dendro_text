@@ -8,14 +8,11 @@ from multiprocessing import Pool
 
 import numpy as np
 from docopt import docopt
-import pygments.lexers
-import pygments.token
-import pygments.util
 from tqdm import tqdm
 
-from .dld import distance_int
+from .dld import distance_int, distance_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
-
+from .ts import text_split, text_split_by_char_type
 
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION'), 'r') as inp:
     __version__ = inp.read().strip()
@@ -31,50 +28,8 @@ def uniq(items):
     return uis
 
 
-def distance_list(lst1: List[str], lst2: List[str]) -> int:
-    w2i = dict()
-
-    def convert(lst: List[str]) -> List[int]:
-        a1 = []
-        for w in lst:
-            i = w2i.get(w, None)
-            if i is None:
-                i = len(w2i) + 1
-                w2i[w] = i
-            a1.append(i)
-        return a1
-
-    a1 = convert(lst1)
-    a2 = convert(lst2)
-    return distance_int(a1, a2)
-
-
 LABEL_SEPARATOR = ','
 LABEL_HEADER = '\t'
-
-
-def text_split(text: str, filename: str) -> List[str]:
-    lexer = None
-    try:
-        lexer = pygments.lexers.get_lexer_for_filename(filename)
-    except pygments.util.ClassNotFound:
-        pass
-
-    if lexer is None or filename.endswith('.txt'):  # lexer for '.txt' seems not working
-        return [c for c in text]
-
-    tokens = lexer.get_tokens(text)
-    words = []
-    for t in tokens:
-        token_type = t[0]
-        token_str = t[1]
-        if token_type in pygments.token.Text:
-            pass
-        elif token_type in pygments.token.String or token_type in pygments.token.Comment:
-            words.extend(token_str.split())
-        else:
-            words.append(token_str)
-    return words
 
 
 Node = Union['LabelNode', List['Node']]
@@ -276,11 +231,14 @@ def do_apply_preorocessors(preprocessors: List[str], target_file: str, temp_dir:
 __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
-  dendro_text [options] [-n NUM|-N NUM] [--prep=PREPROCESSOR]... <file>...
+  dendro_text [options] [-c|-l|-t] [-n NUM|-N NUM] [--prep=PREPROCESSOR]... <file>...
+  dendro_text -W [-c|-l|-t] <file>
   dendro_text --pyplot-font-names
   dendro_text --version
 
 Options:
+  -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
+  -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
   -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
@@ -292,6 +250,7 @@ Options:
   -j NUM                    Parallel execution. Number of worker processes.
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
   --progress                Show progress bar with ETA.
+  -W --show-words           Show words extracted from the input file (No comparison is performed).
   --pyplot-font-names       List font names can be used in plotting dendrogram.
   --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
 """
@@ -300,6 +259,8 @@ Options:
 def main():
     args = docopt(__doc__, version="dendro_text %s" % __version__)
     files = args['<file>']
+    option_tokenize = args['--tokenize']
+    option_char_by_char = args['--char-by-char']
     option_line_by_line = args['--line-by-line']
     option_pyplot = args['--pyplot']
     option_max_depth = int(args['--max-depth'] or "0")
@@ -309,6 +270,7 @@ def main():
     option_field_separator = args['--field-separator']
     option_ascii_char_tree = args['--ascii-char-tree']
     option_progress = args['--progress']
+    option_show_words = args['--show-words']
     option_pyplot_font_names = args['--pyplot-font-names']
     option_pyplot_font = args['--pyplot-font']
     option_prep = args['--prep']
@@ -347,11 +309,21 @@ def main():
                     doc = inp.read()
                 except Exception as _e:
                     sys.exit('Error in reading a file: %s' % repr(f))
-        if option_line_by_line:
+        if option_char_by_char:
+            words = [c for c in doc]
+        elif option_line_by_line:
             words = doc.split('\n')
-        else:
+        elif option_tokenize:
             words = text_split(doc, f)
+        else:
+            words = text_split_by_char_type(doc)
         return words
+
+    if option_show_words:
+        for f in files:
+            words = read_doc(f)
+            for w in words:
+                print(w)
 
     # read documents from files
     temp_dir = tempfile.TemporaryDirectory() if option_prep else None

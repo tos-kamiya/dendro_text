@@ -11,7 +11,4 @@ venv/
 build/
 *.egg-info/
 
-cython_debug/
-*.c
-*.cpp
-*.so
+.tox/

@@ -14,7 +14,7 @@ Features:
 
 * **Lexical analysis / normalization** for source files of programming languages in order to normalize white spaces in such files.
 
-## Install
+## Installation
 
 The `dendro_text` uses an extension module written in Cython. **Make sure you have the latest version of Cyhton before installing.**
 
@@ -48,16 +48,19 @@ dendro_text <file>...
 ### Options
 
 ```
--l --line-by-line         Compare texts in a line-by-line manner.
--m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
--n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
--N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
--s --file-separator=S     File separator (default: comma).
--f --field-separator=S    Separator of tree picture and file (default: tab).
--a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
--j NUM                    Parallel execution. Number of worker processes.
---prep=PREPROCESSOR       Perform preprocessing for each input file.
---progress                Show progress bar with ETA.
+  -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
+  -c --char-by-char         Compare texts in a char-by-char manner.
+  -l --line-by-line         Compare texts in a line-by-line manner.
+  -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
+  -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
+  -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
+  -s --file-separator=S     File separator (default: comma).
+  -f --field-separator=S    Separator of tree picture and file (default: tab).
+  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+  -j NUM                    Parallel execution. Number of worker processes.
+  --prep=PREPROCESSOR       Perform preprocessing for each input file.
+  --progress                Show progress bar with ETA.
+  -W --show-words           Show words extracted from the input file (No comparison is performed).
 ```
 
 The following options are Pyplot (mathplotlib.pyplot) specific ones:
@@ -82,14 +85,14 @@ abcdfg.txt
 abcfg.txt
 abdefg.txt
 
-$ dendro_text -a *.txt
+$ dendro_text -c -a *.txt
 -+-+-+-- 	abcfg.txt
  | | `-- 	abcdfg.txt
  | `-+-- 	abccfg.txt
  |   `-- 	abcccfg.txt
  `-- 	abdefg.txt
 
-$ dendro_text -N0 abccfg.txt *.txt
+$ dendro_text -c -N0 abccfg.txt *.txt
 0	abccfg.txt
 1	abcccfg.txt
 1	abcdfg.txt
@@ -98,6 +101,8 @@ $ dendro_text -N0 abccfg.txt *.txt
 ```
 
 ## Note
+
+### 
 
 ### Multiple option --prep's
 
@@ -113,3 +118,8 @@ $ dendro_text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
 ```
 
 Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
+
+
+### Blocks.txt
+
+The enclosed file `Blocks.txt` was taken from: <https://github.com/CNMan/Unicode/blob/master/UCD/Blocks.txt> .
