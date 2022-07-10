@@ -12,13 +12,8 @@ import pygments.lexers
 import pygments.token
 import pygments.util
 from tqdm import tqdm
-try:
-    from .dld import distance_int
-    ENGINE = "cython"
-except:
-    from .dld_fallback import distance_int
-    ENGINE = "purepython"
 
+from .dld import distance_int
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 
 
@@ -34,24 +29,6 @@ def uniq(items):
             uis.append(i)
             item_set.add(i)
     return uis
-
-
-def distance_str(s1: str, s2: str) -> int:
-    w2i = dict()
-
-    def convert(s: str) -> List[int]:
-        a1 = []
-        for w in s.split(' '):
-            i = w2i.get(w, None)
-            if i is None:
-                i = len(w2i) + 1
-                w2i[w] = i
-            a1.append(i)
-        return a1
-
-    a1 = convert(s1)
-    a2 = convert(s2)
-    return distance_int(a1, a2)
 
 
 def distance_list(lst1: List[str], lst2: List[str]) -> int:
@@ -84,7 +61,7 @@ def text_split(text: str, filename: str) -> List[str]:
         pass
 
     if lexer is None or filename.endswith('.txt'):  # lexer for '.txt' seems not working
-        return text.split()
+        return [c for c in text]
 
     tokens = lexer.get_tokens(text)
     words = []
@@ -173,7 +150,7 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     return docs, labels
 
 
-def dld(i_j_docs):
+def calc_dld(i_j_docs):
     i, j, docs = i_j_docs
     return (i, j), distance_list(docs[i], docs[j])
 
@@ -192,7 +169,7 @@ def calc_dendrogram(docs, progress=False, files=None, workers=None):
     dld_tbl = dict()
     try:
         with Pool(workers) as pool:
-            for ij, v in pool.imap_unordered(dld, jobs):
+            for ij, v in pool.imap_unordered(calc_dld, jobs):
                 dld_tbl[ij] = v
                 pbar.update(1)
     except KeyboardInterrupt as e:
@@ -256,7 +233,7 @@ def do_listing_in_order_of_increasing_distance(
     pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
         if progress else DummyProgressBar()
     for i in range(1, len(docs)):
-        d = distance_list(docs, docs[i])
+        d = distance_list(docs[0], docs[i])
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
@@ -321,7 +298,7 @@ Options:
 
 
 def main():
-    args = docopt(__doc__, version="dendro_text [engine=%s] %s" % (ENGINE, __version__))
+    args = docopt(__doc__, version="dendro_text %s" % __version__)
     files = args['<file>']
     option_line_by_line = args['--line-by-line']
     option_pyplot = args['--pyplot']
@@ -371,7 +348,7 @@ def main():
                 except Exception as _e:
                     sys.exit('Error in reading a file: %s' % repr(f))
         if option_line_by_line:
-            words = doc.split()
+            words = doc.split('\n')
         else:
             words = text_split(doc, f)
         return words

@@ -24,14 +24,14 @@ class TestPrintTree(unittest.TestCase):
         def swap(i, j, lst):
             tmp = lst[i]; lst[i] = lst[j]; lst[j] = tmp
 
-        list1 = [i for i in range(5000)]
-        list2 = [i for i in range(5000)]
+        list1 = [i for i in range(4000)]
+        list2 = [i for i in range(4000)]
 
-        swap(1, 500, list2)
-        swap(3, 800, list2)
+        for i in range(1, 4000, 10):
+            swap(i, i + 5, list2)
 
         d = distance_int(list1, list2)
-        self.assertEqual(d, 4)
+        self.assertEqual(d, 800)
 
 
 if __name__ == '__main__':
