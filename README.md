@@ -91,7 +91,22 @@ $ dendro_text -c -N0 abccfg.txt *.txt
 
 ## Note
 
-### 
+### The default tokenization
+
+The default tokenization (extracting words from text) method is to separate words at the point where the type of letter changes.
+
+For example, a text "The version of dendro_text is marked as v1.1.1." turns into the following token sequence:
+
+```
+["The", " ", "version", " ", "of", " ", "dendro", "_", "text", " ", 
+"is", " ", "marked", " ", "as", " ", "v", "1", ".", "1", ".", "1", "."]
+```
+
+Unicode blocks are used as tables to determine character types. Unicode 14.0 block definitions are used.
+
+### Blocks.txt
+
+The enclosed file `Blocks.txt` is the definition of the Unicode 14.0 Blocks, and was taken from: <https://github.com/CNMan/Unicode/blob/master/UCD/Blocks.txt> .
 
 ### Multiple option --prep's
 
@@ -107,8 +122,3 @@ $ dendro_text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
 ```
 
 Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
-
-
-### Blocks.txt
-
-The enclosed file `Blocks.txt` was taken from: <https://github.com/CNMan/Unicode/blob/master/UCD/Blocks.txt> .
