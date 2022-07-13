@@ -3,7 +3,7 @@ import io
 import os.path as path
 import sys
 
-sys.path.insert(0, path.join(path.dirname(path.abspath(__file__)), '..'))
+sys.path.insert(0, path.join(path.dirname(path.abspath(__file__)), ".."))
 
 from dendro_text import distance_int
 
@@ -22,7 +22,9 @@ class TestPrintTree(unittest.TestCase):
 
     def test_long_lists(self):
         def swap(i, j, lst):
-            tmp = lst[i]; lst[i] = lst[j]; lst[j] = tmp
+            tmp = lst[i]
+            lst[i] = lst[j]
+            lst[j] = tmp
 
         list1 = [i for i in range(4000)]
         list2 = [i for i in range(4000)]
@@ -34,5 +36,5 @@ class TestPrintTree(unittest.TestCase):
         self.assertEqual(d, 800)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

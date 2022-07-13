@@ -14,7 +14,7 @@ from .dld import distance_int, distance_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 from .ts import text_split, text_split_by_char_type
 
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION'), 'r') as inp:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION"), "r") as inp:
     __version__ = inp.read().strip()
 
 
@@ -28,11 +28,11 @@ def uniq(items):
     return uis
 
 
-LABEL_SEPARATOR = ','
-LABEL_HEADER = '\t'
+LABEL_SEPARATOR = ","
+LABEL_HEADER = "\t"
 
 
-Node = Union['LabelNode', List['Node']]
+Node = Union["LabelNode", List["Node"]]
 # Node = Union[LabelNode, List[Node]]  # Will someday become valid with `from __future__ import annotations`?
 
 
@@ -58,14 +58,17 @@ def gen_leaf_node_formatter(label_separator, label_header):
     def format_leaf_node(node: LabelNode) -> str:
         assert isinstance(node, LabelNode)
         return label_header + node.format(label_separator=label_separator)
+
     return format_leaf_node
 
 
 class DummyProgressBar:
     def __init__(self):
         pass
+
     def update(self, value):
         pass
+
     def close(self):
         pass
 
@@ -91,15 +94,14 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
     docs = docs[:]
     labels = labels[:]
     dds = [(0, 0)]
-    pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
-        if progress else DummyProgressBar()
+    pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) if progress else DummyProgressBar()
     for i in range(1, len(docs)):
         d = distance_list(docs[0], docs[i])
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
     dds.sort()
-    dds = dds[:count_neighbors + 1]
+    dds = dds[: count_neighbors + 1]
     docs = [docs[i] for d, i in dds]
     labels = [labels[i] for d, i in dds]
     return docs, labels
@@ -119,8 +121,7 @@ def calc_dendrogram(docs, progress=False, files=None, workers=None):
 
     len_docs = len(docs)
     jobs = [(i, j, docs) for i in range(len_docs) for j in range(len_docs) if i < j]
-    pbar = tqdm(desc="Building dendrogram", total=len(jobs), leave=False) \
-        if progress else DummyProgressBar()
+    pbar = tqdm(desc="Building dendrogram", total=len(jobs), leave=False) if progress else DummyProgressBar()
     dld_tbl = dict()
     try:
         with Pool(workers) as pool:
@@ -142,7 +143,7 @@ def calc_dendrogram(docs, progress=False, files=None, workers=None):
                 assert i > j
                 dmat[i, j] = dld_tbl[(j, i)]
     darr = distance.squareform(dmat)
-    result = linkage(darr, method='average')
+    result = linkage(darr, method="average")
     return result
 
 
@@ -158,35 +159,37 @@ def print_dendrogram(result, labels, format_leaf_node, max_depth=0, tree_picture
     root_node = n
 
     print_tree(
-        root_node, extract_child_nodes, format_leaf_node,
-        max_depth=max_depth, tree_picture_table=tree_picture_table)
+        root_node, extract_child_nodes, format_leaf_node, max_depth=max_depth, tree_picture_table=tree_picture_table
+    )
 
 
 def pyplot_dendrogram(result, label_strs, font=None):
     from scipy.cluster.hierarchy import dendrogram
     import matplotlib.pyplot as plt
+
     if font:
         import matplotlib as mpl
-        mpl.rcParams['font.family'] = font
+
+        mpl.rcParams["font.family"] = font
     plt.figure()
-    dendrogram(result, labels=label_strs, orientation='right')
+    dendrogram(result, labels=label_strs, orientation="right")
     # dendrogram(result, labels=[i for i in range(len_docs)], orientation='right')  # for debug
     plt.show()
 
 
 def do_listing_pyplot_font_names():
     import matplotlib.font_manager as fm
+
     font_names = list(set(f.name for f in fm.fontManager.ttflist))
     font_names.sort()
-    print('\n'.join(font_names))
+    print("\n".join(font_names))
 
 
 def do_listing_in_order_of_increasing_distance(
-        labels: List[str], docs: List[List[str]],
-        neighbors: int = -1, separator: str = '\t', progress: bool = False) -> None:
+    labels: List[str], docs: List[List[str]], neighbors: int = -1, separator: str = "\t", progress: bool = False
+) -> None:
     dds = [(0, 0)]
-    pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) \
-        if progress else DummyProgressBar()
+    pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) if progress else DummyProgressBar()
     for i in range(1, len(docs)):
         d = distance_list(docs[0], docs[i])
         dds.append((d, i))
@@ -195,7 +198,7 @@ def do_listing_in_order_of_increasing_distance(
     dds.sort()
 
     if neighbors > 0:
-        dds = dds[:neighbors + 1]
+        dds = dds[: neighbors + 1]
     for dist, doci in dds:
         print("%d%s%s" % (dist, separator, labels[doci]))
 
@@ -203,28 +206,28 @@ def do_listing_in_order_of_increasing_distance(
 def do_apply_preorocessors(preprocessors: List[str], target_file: str, temp_dir: str) -> str:
     if len(preprocessors) == 1:
         try:
-            cmd = ' '.join([preprocessors[0], target_file])
+            cmd = " ".join([preprocessors[0], target_file])
             r = subprocess.check_output(cmd, shell=True)
-            doc = r.decode('utf-8')
+            doc = r.decode("utf-8")
             return doc
         except Exception as e:
-            sys.exit('Error in preprocessing a file: %s' % repr(target_file))
+            sys.exit("Error in preprocessing a file: %s" % repr(target_file))
             raise e
 
     base_name = os.path.basename(target_file)
     tmp_file = os.path.join(temp_dir, base_name)
-    with open(target_file, 'rb') as inp:
+    with open(target_file, "rb") as inp:
         tmp_file_content: bytes = inp.read()
     for prep in preprocessors:
-        with open(tmp_file, 'wb') as outp:
+        with open(tmp_file, "wb") as outp:
             outp.write(tmp_file_content)
         try:
-            cmd = ' '.join([prep, tmp_file])
+            cmd = " ".join([prep, tmp_file])
             tmp_file_content = subprocess.check_output(cmd, shell=True)
         except Exception as e:
-            sys.exit('Error in preprocessing a file: %s' % repr(target_file))
+            sys.exit("Error in preprocessing a file: %s" % repr(target_file))
             raise e
-    doc = tmp_file_content.decode('utf-8')
+    doc = tmp_file_content.decode("utf-8")
     return doc
 
 
@@ -258,23 +261,23 @@ Options:
 
 def main():
     args = docopt(__doc__, version="dendro_text %s" % __version__)
-    files = args['<file>']
-    option_tokenize = args['--tokenize']
-    option_char_by_char = args['--char-by-char']
-    option_line_by_line = args['--line-by-line']
-    option_pyplot = args['--pyplot']
-    option_max_depth = int(args['--max-depth'] or "0")
-    option_neighbors = int(args['--neighbors'] or "0")
-    option_neighbor_list = int(args['--neighbor-list'] or "-1")
-    option_file_separator = args['--file-separator']
-    option_field_separator = args['--field-separator']
-    option_ascii_char_tree = args['--ascii-char-tree']
-    option_progress = args['--progress']
-    option_show_words = args['--show-words']
-    option_pyplot_font_names = args['--pyplot-font-names']
-    option_pyplot_font = args['--pyplot-font']
-    option_prep = args['--prep']
-    option_workers = int(args['-j']) if args['-j'] else None
+    files = args["<file>"]
+    option_tokenize = args["--tokenize"]
+    option_char_by_char = args["--char-by-char"]
+    option_line_by_line = args["--line-by-line"]
+    option_pyplot = args["--pyplot"]
+    option_max_depth = int(args["--max-depth"] or "0")
+    option_neighbors = int(args["--neighbors"] or "0")
+    option_neighbor_list = int(args["--neighbor-list"] or "-1")
+    option_file_separator = args["--file-separator"]
+    option_field_separator = args["--field-separator"]
+    option_ascii_char_tree = args["--ascii-char-tree"]
+    option_progress = args["--progress"]
+    option_show_words = args["--show-words"]
+    option_pyplot_font_names = args["--pyplot-font-names"]
+    option_pyplot_font = args["--pyplot-font"]
+    option_prep = args["--prep"]
+    option_workers = int(args["-j"]) if args["-j"] else None
     if option_pyplot:
         if option_max_depth:
             sys.exit("Error: Options --pyplot and --max-depth are mutually exclusive.")
@@ -293,8 +296,8 @@ def main():
         return
 
     format_leaf_node = gen_leaf_node_formatter(
-        option_file_separator or LABEL_SEPARATOR,
-        option_field_separator or LABEL_HEADER)
+        option_file_separator or LABEL_SEPARATOR, option_field_separator or LABEL_HEADER
+    )
 
     tree_picture_table = BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else None
 
@@ -304,15 +307,15 @@ def main():
         if option_prep:
             doc = do_apply_preorocessors(option_prep, f, temp_dir.name)
         else:
-            with open(f, 'r') as inp:
+            with open(f, "r") as inp:
                 try:
                     doc = inp.read()
                 except Exception as _e:
-                    sys.exit('Error in reading a file: %s' % repr(f))
+                    sys.exit("Error in reading a file: %s" % repr(f))
         if option_char_by_char:
             words = [c for c in doc]
         elif option_line_by_line:
-            words = doc.split('\n')
+            words = doc.split("\n")
         elif option_tokenize:
             words = text_split(doc, f)
         else:
@@ -336,8 +339,12 @@ def main():
         # `list neighborsP command (option -N)
         label_strs = [label.format() for label in labels]
         do_listing_in_order_of_increasing_distance(
-            label_strs, docs,
-            neighbors=option_neighbor_list, separator=option_field_separator or LABEL_HEADER, progress=option_progress)
+            label_strs,
+            docs,
+            neighbors=option_neighbor_list,
+            separator=option_field_separator or LABEL_HEADER,
+            progress=option_progress,
+        )
         return
 
     docs, labels = merge_duplicated_docs(docs, labels)
@@ -348,15 +355,15 @@ def main():
             print("All documents are equivalent to each other.")
         else:
             root_node = labels[0]
-            print_tree(
-                root_node, extract_child_nodes, format_leaf_node,
-                tree_picture_table=tree_picture_table)
+            print_tree(root_node, extract_child_nodes, format_leaf_node, tree_picture_table=tree_picture_table)
         return
 
     if option_neighbors > 0 and len(docs) > option_neighbors + 1:
         docs, labels = select_neighbors(docs, labels, option_neighbors, progress=option_progress)
 
-    result = calc_dendrogram(docs, progress=option_progress, files=[ln.items[0] for ln in labels], workers=option_workers)
+    result = calc_dendrogram(
+        docs, progress=option_progress, files=[ln.items[0] for ln in labels], workers=option_workers
+    )
     # print(repr(result))  # for debug
 
     # plot clustering result as dendrogram
@@ -365,9 +372,9 @@ def main():
         pyplot_dendrogram(result, label_strs, font=option_pyplot_font)
     else:
         print_dendrogram(
-            result, labels, format_leaf_node,
-            max_depth=option_max_depth, tree_picture_table=tree_picture_table)
+            result, labels, format_leaf_node, max_depth=option_max_depth, tree_picture_table=tree_picture_table
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
