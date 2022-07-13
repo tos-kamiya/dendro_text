@@ -3,7 +3,7 @@ import io
 import os.path as path
 import sys
 
-from dendro_text import text_split_by_char_type
+from dendro_text.ts import text_split_by_char_type
 
 
 class TestTextSplit(unittest.TestCase):

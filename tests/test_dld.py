@@ -3,9 +3,7 @@ import io
 import os.path as path
 import sys
 
-sys.path.insert(0, path.join(path.dirname(path.abspath(__file__)), ".."))
-
-from dendro_text import distance_int
+from dendro_text.dld import distance_int
 
 
 class TestPrintTree(unittest.TestCase):

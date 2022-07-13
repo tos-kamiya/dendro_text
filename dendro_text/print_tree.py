@@ -1,6 +1,6 @@
+from typing import Callable, Dict, List, Optional, TextIO, TypeVar, Union
+
 import sys
-from typing import *
-from typing.io import *
 
 
 ASCII_TREE_PICTURE_TABLE = {"L": "-+", "M": " +", "R": " `", "l": " |", "m": " |", "r": "  ", "p": "--"}
@@ -20,15 +20,13 @@ NodeType = TypeVar("NodeType")
 
 def print_tree(
     node: NodeType,
-    child_nodes_extractor: Callable[[NodeType], Union[List[NodeType], None]],
+    child_nodes_extractor: Callable[[NodeType], Optional[List[NodeType]]],
     leaf_node_formatter: Callable[[NodeType], str],
     max_depth: int = 0,  # no limit
     file: TextIO = sys.stdout,
-    tree_picture_table=None,
+    tree_picture_table: Optional[Dict[str, str]] = None,
 ):
-
-    if tree_picture_table is None:
-        tree_picture_table = ASCII_TREE_PICTURE_TABLE
+    tpt: Dict[str, str] = tree_picture_table if tree_picture_table is not None else ASCII_TREE_PICTURE_TABLE
 
     def collect_leaves_iter(node):
         cns = child_nodes_extractor(node)
@@ -38,7 +36,7 @@ def print_tree(
         else:
             yield node
 
-    padding = tree_picture_table["p"]
+    padding = tpt["p"]
     last_indent = []
 
     def print_leaf(node, indent):
@@ -49,7 +47,7 @@ def print_tree(
                 pic[i] = "l" if bi == 0 else "m" if bi > 0 else "r"
             else:
                 pic[i] = "L" if bi == 0 else "M" if bi > 0 else "R"
-        file.write("%s%s %s\n" % ("".join(tree_picture_table[pi] for pi in pic), padding, leaf_node_formatter(node)))
+        file.write("%s%s %s\n" % ("".join(tpt[pi] for pi in pic), padding, leaf_node_formatter(node)))
         # file.write('%s%s %s\n' % (''.join(pi for pi in pic), '', leaf_formatter(node)))  # for debug
 
     def print_tree_i(node, depth, indent):

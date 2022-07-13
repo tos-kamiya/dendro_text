@@ -4,7 +4,7 @@ import os.path as path
 import sys
 import tempfile
 
-import dendro_text
+from dendro_text.commands import do_apply_preorocessors
 
 
 script_dir = path.dirname(path.abspath(__file__))
@@ -25,7 +25,7 @@ class TestDoApplyPreorocessors(unittest.TestCase):
         with open(target_file, "w") as outp:
             outp.write("a B c\n")
         preps = ["awk '{ print toupper($0) }'"]
-        r = dendro_text.do_apply_preorocessors(preps, target_file, tempd)
+        r = do_apply_preorocessors(preps, target_file, tempd)
         self.assertEqual(r, "A B C\n")
 
     def test_multiple_preprocessors(self):
@@ -34,7 +34,7 @@ class TestDoApplyPreorocessors(unittest.TestCase):
         with open(target_file, "w") as outp:
             outp.write("a B c\nd E f\n")
         preps = ["awk '{ print toupper($0) }'", "awk '/^A/'"]
-        r = dendro_text.do_apply_preorocessors(preps, target_file, tempd)
+        r = do_apply_preorocessors(preps, target_file, tempd)
         self.assertEqual(r, "A B C\n")
 
 
