@@ -10,7 +10,7 @@ from docopt import docopt
 from tqdm import tqdm
 
 from .dld import distance_list
-from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
+from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
 from .ts import text_split, text_split_by_char_type
 from .commands import DummyProgressBar, pyplot_dendrogram, do_listing_pyplot_font_names, do_apply_preorocessors, do_listing_in_order_of_increasing_distance
 
@@ -156,7 +156,7 @@ def print_dendrogram(result, labels, format_leaf_node, max_depth=0, tree_picture
 __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
-  dendro_text [options] [-c|-l|-t] [-n NUM|-N NUM] [--prep=PREPROCESSOR]... <file>...
+  dendro_text [options] [-c|-l|-t] [-n NUM|-N NUM] [-a|-B] [--prep=PREPROCESSOR]... <file>...
   dendro_text -W [-c|-l|-t] <file>
   dendro_text --pyplot-font-names
   dendro_text --version
@@ -169,6 +169,7 @@ Options:
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+  -B --box-drawing-tree-with-fullwidth-space    Draw tree picture with box-drawing characters and fullwidth space.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
   -j NUM                    Parallel execution. Number of worker processes.
@@ -194,6 +195,7 @@ def main():
     option_file_separator = args["--file-separator"]
     option_field_separator = args["--field-separator"]
     option_ascii_char_tree = args["--ascii-char-tree"]
+    option_box_drawing_tree_with_fullwidth_space = args["--box-drawing-tree-with-fullwidth-space"]
     option_progress = args["--progress"]
     option_show_words = args["--show-words"]
     option_pyplot_font_names = args["--pyplot-font-names"]
@@ -221,7 +223,10 @@ def main():
         option_file_separator or LABEL_SEPARATOR, option_field_separator or LABEL_HEADER
     )
 
-    tree_picture_table = BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else None
+    tree_picture_table = \
+        BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE if option_box_drawing_tree_with_fullwidth_space else \
+        BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else \
+        None
 
     files = uniq(files)
 

@@ -2,8 +2,8 @@ from typing import Callable, Dict, List, Optional, TextIO, TypeVar
 
 import sys
 
-
 ASCII_TREE_PICTURE_TABLE = {"L": "-+", "M": " +", "R": " `", "l": " |", "m": " |", "r": "  ", "p": "--"}
+
 BOX_DRAWING_TREE_PICTURE_TABLE = {
     "L": "\u2500\u252c",
     "M": " \u251c",
@@ -14,6 +14,15 @@ BOX_DRAWING_TREE_PICTURE_TABLE = {
     "p": "\u2500\u2500",
 }
 
+BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE = {
+    "L": "\u252c",
+    "M": "\u251c",
+    "R": "\u2514",
+    "l": "\u2502",
+    "m": "\u2502",
+    "r": "\u3000",
+    "p": "\u2500",
+}
 
 NodeType = TypeVar("NodeType")
 
