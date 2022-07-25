@@ -53,9 +53,13 @@ dendro_text <file>...
 ```
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
+  -B --box-drawing-tree-with-fullwidth-space    Draw tree picture with box-drawing characters and fullwidth space.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
 ```
+
+Option `-a` is for environments (such as C locale) where box-drawing characters turns into garbled characters.
+Option `-B` is to prevent tree pictures from being corrupted in environments where box-drawing characters are treated as full-width ones.
 
 #### Parallel execution
 
