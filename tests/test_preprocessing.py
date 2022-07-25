@@ -1,7 +1,5 @@
 import unittest
-import io
 import os.path as path
-import sys
 import tempfile
 
 from dendro_text.commands import do_apply_preorocessors

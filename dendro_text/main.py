@@ -2,7 +2,6 @@ from typing import List, Tuple, Union
 
 import os.path
 import sys
-import subprocess
 import tempfile
 from multiprocessing import Pool
 
@@ -10,7 +9,7 @@ import numpy as np
 from docopt import docopt
 from tqdm import tqdm
 
-from .dld import distance_int, distance_list
+from .dld import distance_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE
 from .ts import text_split, text_split_by_char_type
 from .commands import DummyProgressBar, pyplot_dendrogram, do_listing_pyplot_font_names, do_apply_preorocessors, do_listing_in_order_of_increasing_distance
@@ -119,7 +118,7 @@ def calc_dendrogram(docs, progress=False, files=None, workers=None):
             for ij, v in pool.imap_unordered(calc_dld, jobs):
                 dld_tbl[ij] = v
                 pbar.update(1)
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt as _e:
         print("\nWarning: Stopped by Ctl+C. Show the results for now.", file=sys.stderr)
     pbar.close()
 
@@ -210,7 +209,7 @@ def main():
 
     if option_pyplot or option_pyplot_font_names:
         try:
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot as _plt
         except ImportError as _e:
             sys.exit("Error: matplotlib.pyplot is not installed.")
 

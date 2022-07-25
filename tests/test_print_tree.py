@@ -1,7 +1,5 @@
 import unittest
 import io
-import os.path as path
-import sys
 
 from dendro_text.print_tree import print_tree
 

@@ -1,7 +1,4 @@
 import unittest
-import io
-import os.path as path
-import sys
 
 from dendro_text.dld import distance_int
 

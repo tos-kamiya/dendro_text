@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, TextIO, TypeVar, Union
+from typing import Callable, Dict, List, Optional, TextIO, TypeVar
 
 import sys
 
