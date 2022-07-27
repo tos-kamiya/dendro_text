@@ -3,7 +3,7 @@
 dendro_text
 ===========
 
-Draw dendrogram of similarity among text files.
+Draw dendrogram of similarity between text files.
 
 Similarity is measured in terms of **Damerau-Levenshtein edit distance**.
 Distance of given two texts is count of inserted, deleted, and moved characters required to modify one text to the other (smaller means more similar).
@@ -18,14 +18,11 @@ Features:
 
 ## Installation
 
-To install,
+Install/uninstall with pip.
 
 ```sh
 pip install dendro_text
 ```
-
-To uninstall,
-
 ```sh
 pip uninstall dendro_text
 ```
@@ -44,6 +41,7 @@ dendro_text <file>...
   -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
+  -U --no-uniq-files        Do not remove duplicates from the input files.
   -W --show-words           Show words extracted from the input file (No comparison is performed).
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
 ```

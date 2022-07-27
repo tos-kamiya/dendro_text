@@ -165,6 +165,7 @@ Options:
   -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
+  -U --no-uniq-files        Do not remove duplicates from the input files.
   -W --show-words           Show words extracted from the input file (No comparison is performed).
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
@@ -188,6 +189,7 @@ def main():
     option_tokenize = args["--tokenize"]
     option_char_by_char = args["--char-by-char"]
     option_line_by_line = args["--line-by-line"]
+    option_remove_duplicate = not args['--no-uniq-files']
     option_pyplot = args["--pyplot"]
     option_max_depth = int(args["--max-depth"] or "0")
     option_neighbors = int(args["--neighbors"] or "0")
@@ -228,7 +230,8 @@ def main():
         BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else \
         None
 
-    files = uniq(files)
+    if option_remove_duplicate:
+        files = uniq(files)
 
     temp_dir = tempfile.TemporaryDirectory() if option_prep else None
 
