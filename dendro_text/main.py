@@ -116,7 +116,7 @@ def calc_dld(i_j_docs):
     return (i, j), distance_list(docs[i], docs[j])
 
 
-def calc_dendrogram(docs, progress=False, files=None, workers=None):
+def calc_dendrogram(docs, progress=False, workers=None):
     import scipy.spatial.distance as distance
     from scipy.cluster.hierarchy import linkage
 
@@ -307,9 +307,7 @@ def main():
     if option_neighbors > 0 and len(docs) > option_neighbors + 1:
         docs, labels = select_neighbors(docs, labels, option_neighbors, progress=option_progress)
 
-    result = calc_dendrogram(
-        docs, progress=option_progress, files=[ln.items[0] for ln in labels], workers=option_workers
-    )
+    result = calc_dendrogram(docs, progress=option_progress, workers=option_workers)
     # print(repr(result))  # for debug
 
     # plot clustering result as dendrogram
