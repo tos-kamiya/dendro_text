@@ -6,9 +6,9 @@ from dendro_text.print_tree import print_tree
 
 def extract_child_nodes(node):
     if isinstance(node, list):
-        return node[:]
+        return node[:], None
     else:
-        return None  # the node is a leaf
+        return None, node  # the node is a leaf
 
 
 def format_leaf_node(node):

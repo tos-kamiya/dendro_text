@@ -4,7 +4,7 @@ from typing import List
 # ref: https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
 
 
-def distance_int(s1, s2):
+def distance_int(s1: List[int], s2: List[int]) -> int:
     if len(s1) < len(s2):
         tmp = s1
         s1 = s2

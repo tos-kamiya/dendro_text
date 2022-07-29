@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, TextIO, TypeVar
+from typing import Callable, Dict, Iterator, List, Optional, TextIO, Tuple, TypeVar
 
 import sys
 
@@ -25,25 +25,30 @@ BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE = {
 }
 
 NodeType = TypeVar("NodeType")
+LeafType = TypeVar("LeafType")
 
 
 def print_tree(
     node: NodeType,
-    child_nodes_extractor: Callable[[NodeType], Optional[List[NodeType]]],
-    leaf_node_formatter: Callable[[NodeType], str],
-    max_depth: int = 0,  # no limit
+    child_nodes_extractor: Callable[[NodeType], Tuple[Optional[List[NodeType]], Optional[LeafType]]],
+    leaf_node_formatter: Callable[[LeafType], str],
+    max_depth: Optional[int] = None,  # no limit
     file: TextIO = sys.stdout,
     tree_picture_table: Optional[Dict[str, str]] = None,
 ):
     tpt: Dict[str, str] = tree_picture_table if tree_picture_table is not None else ASCII_TREE_PICTURE_TABLE
 
-    def collect_leaves_iter(node):
-        cns = child_nodes_extractor(node)
+    if max_depth is None:
+        max_depth = 0
+
+    def collect_leaves_iter(node: NodeType) -> Iterator[LeafType]:
+        cns, leaf = child_nodes_extractor(node)
         if cns is not None:
             for cn in cns:
                 yield from collect_leaves_iter(cn)
         else:
-            yield node
+            assert leaf is not None
+            yield leaf
 
     padding = tpt["p"]
     last_indent = []
@@ -60,7 +65,7 @@ def print_tree(
         # file.write('%s%s %s\n' % (''.join(pi for pi in pic), '', leaf_formatter(node)))  # for debug
 
     def print_tree_i(node, depth, indent):
-        cns = child_nodes_extractor(node)
+        cns, leaf = child_nodes_extractor(node)
         if cns is not None:
             if depth == max_depth:
                 cns = [cn for cn in collect_leaves_iter(node)]
@@ -77,6 +82,7 @@ def print_tree(
                         i = -1
                     print_tree_i(cn, depth + 1, indent + [i])
         else:
+            assert leaf is not None
             print_leaf(node, indent)
             last_indent[:] = indent
 
@@ -88,9 +94,9 @@ if __name__ == "__main__":
 
     def extract_child_nodes(node):
         if isinstance(node, list):
-            return node[:]
+            return node[:], None
         else:
-            return None  # the node is a leaf
+            return None, node  # the node is a leaf
 
     def format_leaf_node(node):
         return node

@@ -1,4 +1,5 @@
-from typing import List, Tuple, Union
+from itertools import count
+from typing import Callable, List, Optional, Tuple, Union
 
 import os.path
 import sys
@@ -8,6 +9,7 @@ from multiprocessing import Pool
 import numpy as np
 from docopt import docopt
 from tqdm import tqdm
+from init_attrs_with_kwargs import cast_set_attrs
 
 from .dld import distance_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
@@ -33,10 +35,6 @@ LABEL_SEPARATOR = ","
 LABEL_HEADER = "\t"
 
 
-Node = Union["LabelNode", List["Node"]]
-# Node = Union[LabelNode, List[Node]]  # Will someday become valid with `from __future__ import annotations`?
-
-
 class LabelNode:
     def __init__(self, *items):
         self.items = list(items)
@@ -48,14 +46,17 @@ class LabelNode:
         return label_separator.join(self.items)
 
 
-def extract_child_nodes(node: Node) -> Union[List[Node], None]:
+Node = Union[LabelNode, List["Node"]]
+
+
+def extract_child_nodes(node: Node) -> Tuple[Optional[List[Node]], Optional[LabelNode]]:
     if isinstance(node, list):
-        return node[:]
+        return node[:], None
     else:
-        return None
+        return None, node
 
 
-def gen_leaf_node_formatter(label_separator, label_header):
+def gen_leaf_node_formatter(label_separator: str, label_header: str) -> Callable[[LabelNode], str]:
     def format_leaf_node(node: LabelNode) -> str:
         assert isinstance(node, LabelNode)
         return label_header + node.format(label_separator=label_separator)
@@ -63,7 +64,7 @@ def gen_leaf_node_formatter(label_separator, label_header):
     return format_leaf_node
 
 
-def merge_identical_docs(docs, labels):
+def merge_identical_docs(docs: List[List[str]], labels: List[LabelNode]) -> Tuple[List[List[str]], List[LabelNode]]:
     docs = docs[:]
     labels = labels[:]
 
@@ -94,7 +95,7 @@ def merge_identical_docs(docs, labels):
     return docs, labels
 
 
-def select_neighbors(docs, labels, count_neighbors, progress=False):
+def select_neighbors(docs: List[List[str]], labels: List[LabelNode], neighbors: int, progress: bool = False):
     docs = docs[:]
     labels = labels[:]
     dds: List[Tuple[int, int]] = [(0, 0)]
@@ -105,7 +106,7 @@ def select_neighbors(docs, labels, count_neighbors, progress=False):
         pbar.update(1)
     pbar.close()
     dds.sort()
-    dds = dds[: count_neighbors + 1]
+    dds = dds[: neighbors + 1]
     docs = [docs[i] for d, i in dds]
     labels = [labels[i] for d, i in dds]
     return docs, labels
@@ -151,7 +152,7 @@ def calc_dendrogram(docs, progress=False, workers=None):
     return result
 
 
-def print_dendrogram(result, labels, format_leaf_node, max_depth=0, tree_picture_table=None):
+def print_dendrogram(result, labels, format_leaf_node, max_depth=None, tree_picture_table=None):
     index_to_node = labels[:]
     n = None
     for li in result:
@@ -165,6 +166,29 @@ def print_dendrogram(result, labels, format_leaf_node, max_depth=0, tree_picture
     print_tree(
         root_node, extract_child_nodes, format_leaf_node, max_depth=max_depth, tree_picture_table=tree_picture_table
     )
+
+
+class Args:
+    file: List[str]
+    tokenize: bool
+    char_by_char: bool
+    line_by_line: bool
+    no_uniq_files: bool
+    show_words: bool
+    prep: List[str]
+    max_depth: Optional[int]
+    ascii_char_tree: bool
+    box_drawing_tree_with_fullwidth_space: bool
+    file_separator: Optional[str]
+    field_separator: Optional[str]
+    workers: Optional[int]
+    progress: bool
+    neighbors: Optional[int]
+    neighbor_list: Optional[int]
+    pyplot: bool
+    pyplot_font_names: bool
+    pyplot_font: Optional[str]
+    version: str
 
 
 __doc__ = """Draw dendrogram of similarity among text files.
@@ -187,7 +211,7 @@ Options:
   -B --box-drawing-tree-with-fullwidth-space    Draw tree picture with box-drawing characters and fullwidth space.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
-  -j NUM                    Parallel execution. Number of worker processes.
+  -j NUM --workers=NUM      Parallel execution. Number of worker processes.
   --progress                Show progress bar with ETA.
   -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
   -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
@@ -198,78 +222,63 @@ Options:
 
 
 def main():
-    args = docopt(__doc__, version="dendro_text %s" % __version__)
-    files = args["<file>"]
-    option_tokenize = args["--tokenize"]
-    option_char_by_char = args["--char-by-char"]
-    option_line_by_line = args["--line-by-line"]
-    option_remove_duplicate = not args['--no-uniq-files']
-    option_pyplot = args["--pyplot"]
-    option_max_depth = int(args["--max-depth"] or "0")
-    option_neighbors = int(args["--neighbors"] or "0")
-    option_neighbor_list = int(args["--neighbor-list"] or "-1")
-    option_file_separator = args["--file-separator"]
-    option_field_separator = args["--field-separator"]
-    option_ascii_char_tree = args["--ascii-char-tree"]
-    option_box_drawing_tree_with_fullwidth_space = args["--box-drawing-tree-with-fullwidth-space"]
-    option_progress = args["--progress"]
-    option_show_words = args["--show-words"]
-    option_pyplot_font_names = args["--pyplot-font-names"]
-    option_pyplot_font = args["--pyplot-font"]
-    option_prep = args["--prep"]
-    option_workers = int(args["-j"]) if args["-j"] else None
-    if option_pyplot:
-        if option_max_depth:
+    docopt_args = docopt(__doc__, version="dendro_text %s" % __version__)
+    args: Args = cast_set_attrs(Args(), **docopt_args)
+
+    option_neighbor_list = args.neighbor_list if args.neighbor_list is not None else -1
+    if args.pyplot:
+        if args.max_depth is not None:
             sys.exit("Error: Options --pyplot and --max-depth are mutually exclusive.")
     else:
-        if option_pyplot_font:
+        if args.pyplot_font:
             sys.exit("Error: Option --pyplot-font is valid only with --pyplot.")
 
-    if option_pyplot or option_pyplot_font_names:
+    if args.pyplot or args.pyplot_font_names:
         try:
             import matplotlib.pyplot as _plt
         except ImportError as _e:
             sys.exit("Error: matplotlib.pyplot is not installed.")
 
-    if option_pyplot_font_names:
+    if args.pyplot_font_names:
         do_listing_pyplot_font_names()
         return
 
     format_leaf_node = gen_leaf_node_formatter(
-        option_file_separator or LABEL_SEPARATOR, option_field_separator or LABEL_HEADER
+        args.file_separator or LABEL_SEPARATOR, args.field_separator or LABEL_HEADER
     )
 
     tree_picture_table = \
-        BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE if option_box_drawing_tree_with_fullwidth_space else \
-        BOX_DRAWING_TREE_PICTURE_TABLE if not option_ascii_char_tree else \
+        BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE if args.box_drawing_tree_with_fullwidth_space else \
+        BOX_DRAWING_TREE_PICTURE_TABLE if not args.ascii_char_tree else \
         None
 
-    if option_remove_duplicate:
+    files = args.file
+    if not args.no_uniq_files:
         files = uniq(files)
 
-    temp_dir = tempfile.TemporaryDirectory() if option_prep else None
+    temp_dir = tempfile.TemporaryDirectory() if args.prep else None
 
     def read_doc(f):
-        if option_prep:
+        if args.prep:
             assert temp_dir is not None
-            doc = do_apply_preorocessors(option_prep, f, temp_dir.name)
+            doc = do_apply_preorocessors(args.prep, f, temp_dir.name)
         else:
             with open(f, "r") as inp:
                 try:
                     doc = inp.read()
                 except Exception as _e:
                     sys.exit("Error in reading a file: %s" % repr(f))
-        if option_char_by_char:
+        if args.char_by_char:
             words = [c for c in doc]
-        elif option_line_by_line:
+        elif args.line_by_line:
             words = doc.split("\n")
-        elif option_tokenize:
+        elif args.tokenize:
             words = text_split(doc, f)
         else:
             words = text_split_by_char_type(doc)
         return words
 
-    if option_show_words:
+    if args.show_words:
         for f in files:
             words = read_doc(f)
             for w in words:
@@ -288,8 +297,8 @@ def main():
             label_strs,
             docs,
             neighbors=option_neighbor_list,
-            separator=option_field_separator or LABEL_HEADER,
-            progress=option_progress,
+            separator=args.field_separator or LABEL_HEADER,
+            progress=args.progress,
         )
         return
 
@@ -297,24 +306,24 @@ def main():
 
     # special case: just one file is given or all files are equivalent
     if len(docs) <= 1:
-        if option_pyplot:
+        if args.pyplot:
             print("All documents are equivalent to each other.")
         else:
             root_node = labels[0]
             print_tree(root_node, extract_child_nodes, format_leaf_node, tree_picture_table=tree_picture_table)
         return
 
-    if option_neighbors > 0 and len(docs) > option_neighbors + 1:
-        docs, labels = select_neighbors(docs, labels, option_neighbors, progress=option_progress)
+    if args.neighbors is not None and args.neighbors > 0 and len(docs) > args.neighbors + 1:
+        docs, labels = select_neighbors(docs, labels, args.neighbors, progress=args.progress)
 
-    result = calc_dendrogram(docs, progress=option_progress, workers=option_workers)
+    result = calc_dendrogram(docs, progress=args.progress, workers=args.workers)
     # print(repr(result))  # for debug
 
     # plot clustering result as dendrogram
-    if option_pyplot:
+    if args.pyplot:
         label_strs = [label.format() for label in labels]
-        pyplot_dendrogram(result, label_strs, font=option_pyplot_font)
+        pyplot_dendrogram(result, label_strs, font=args.pyplot_font)
     else:
         print_dendrogram(
-            result, labels, format_leaf_node, max_depth=option_max_depth, tree_picture_table=tree_picture_table
+            result, labels, format_leaf_node, max_depth=args.max_depth, tree_picture_table=tree_picture_table
         )
