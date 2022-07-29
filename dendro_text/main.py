@@ -63,20 +63,34 @@ def gen_leaf_node_formatter(label_separator, label_header):
     return format_leaf_node
 
 
-def merge_duplicated_docs(docs, labels):
+def merge_identical_docs(docs, labels):
     docs = docs[:]
     labels = labels[:]
-    i = 0
-    while i < len(docs):  # docs is modified inside the following loop
-        j = i + 1
-        while j < len(docs):
-            if docs[j] == docs[i]:
-                labels[i].merge(labels[j])
-                del labels[j]
-                del docs[j]
-            else:
-                j += 1
-        i += 1
+
+    hash2indices = dict()
+    for i, d in enumerate(docs):
+        h = sum(hash(item) for item in d)
+        hash2indices.setdefault(h, []).append(i)
+
+    indice_set_tobe_removed = set()
+    for h, indices in hash2indices.items():
+        for i in range(len(indices)):
+            idx1 = indices[i]
+            if idx1 in indice_set_tobe_removed:
+                continue  # for idx1
+            for idx2 in indices[i + 1:]:
+                if idx2 in indice_set_tobe_removed:
+                    continue  # for idx2
+                if docs[idx1] == docs[idx2]:
+                    labels[idx1].merge(labels[idx2])
+                    indice_set_tobe_removed.add(idx2)
+
+    indices_tobe_removed = list(indice_set_tobe_removed)
+    indices_tobe_removed.sort(reverse=True)
+    for i in indices_tobe_removed:
+        del docs[i]
+        del labels[i]
+
     return docs, labels
 
 
@@ -279,7 +293,7 @@ def main():
         )
         return
 
-    docs, labels = merge_duplicated_docs(docs, labels)
+    docs, labels = merge_identical_docs(docs, labels)
 
     # special case: just one file is given or all files are equivalent
     if len(docs) <= 1:
