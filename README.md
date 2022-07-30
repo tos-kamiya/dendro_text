@@ -18,11 +18,22 @@ Features:
 
 ## Installation
 
-Install/uninstall with pip.
+To make `dendro_text` compatible with both `docopt` and `docopt-ng`, dependencies on them are now explicitly extra dependencies.
+
+If you know either `docopt` or `docopt-ng` is already installed on your system, just try the following:
 
 ```sh
 pip install dendro_text
 ```
+
+If you are unsure `docopt` or `docopt-ng` is installed on your system, try the following:
+
+```sh
+pip install dendro_text[docopt-ng]
+```
+
+To uninstall,
+
 ```sh
 pip uninstall dendro_text
 ```
