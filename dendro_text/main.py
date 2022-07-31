@@ -13,7 +13,13 @@ from init_attrs_with_kwargs import cast_set_attrs
 from .dld import distance_int_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
 from .ts import text_split, text_split_by_char_type
-from .commands import DummyProgressBar, pyplot_dendrogram, do_listing_pyplot_font_names, do_apply_preorocessors, do_listing_in_order_of_increasing_distance
+from .commands import (
+    DummyProgressBar,
+    pyplot_dendrogram,
+    do_listing_pyplot_font_names,
+    do_apply_preorocessors,
+    do_listing_in_order_of_increasing_distance,
+)
 
 
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION"), "r") as inp:
@@ -78,7 +84,7 @@ def merge_identical_idocs(idocs: List[List[int]], labels: List[LabelNode]) -> Tu
             idx1 = indices[i]
             if idx1 in indice_set_tobe_removed:
                 continue  # for idx1
-            for idx2 in indices[i + 1:]:
+            for idx2 in indices[i + 1 :]:
                 if idx2 in indice_set_tobe_removed:
                     continue  # for idx2
                 if idocs[idx1] == idocs[idx2]:
@@ -94,7 +100,9 @@ def merge_identical_idocs(idocs: List[List[int]], labels: List[LabelNode]) -> Tu
     return idocs, labels
 
 
-def select_neighbors(idocs: List[List[int]], labels: List[LabelNode], neighbors: int, progress: bool = False) -> Tuple[List[List[int]], List[LabelNode]]:
+def select_neighbors(
+    idocs: List[List[int]], labels: List[LabelNode], neighbors: int, progress: bool = False
+) -> Tuple[List[List[int]], List[LabelNode]]:
     idocs = idocs[:]
     labels = labels[:]
     dds: List[Tuple[int, int]] = [(0, 0)]
@@ -246,10 +254,13 @@ def main():
         args.file_separator or LABEL_SEPARATOR, args.field_separator or LABEL_HEADER
     )
 
-    tree_picture_table = \
-        BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE if args.box_drawing_tree_with_fullwidth_space else \
-        BOX_DRAWING_TREE_PICTURE_TABLE if not args.ascii_char_tree else \
-        None
+    tree_picture_table = (
+        BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
+        if args.box_drawing_tree_with_fullwidth_space
+        else BOX_DRAWING_TREE_PICTURE_TABLE
+        if not args.ascii_char_tree
+        else None
+    )
 
     files = args.file
     if not args.no_uniq_files:

@@ -6,14 +6,14 @@ from dendro_text.main import LabelNode, merge_identical_idocs
 class TestMergeIdenticalDocs(unittest.TestCase):
     def test_no_identical_docs(self):
         docs = [
-            ['a', 'b'],
-            ['a'],
-            ['b', 'a'],
+            ["a", "b"],
+            ["a"],
+            ["b", "a"],
         ]
         labels = [
-            LabelNode('1'),
-            LabelNode('2'),
-            LabelNode('3'),
+            LabelNode("1"),
+            LabelNode("2"),
+            LabelNode("3"),
         ]
 
         mdocs, mlabels = merge_identical_idocs(docs, labels)
@@ -28,33 +28,33 @@ class TestMergeIdenticalDocs(unittest.TestCase):
 
     def test_identical_docs(self):
         docs = [
-            ['a', 'b'],
-            ['p'],
-            ['a', 'b'],
-            ['x', 'y'],
-            ['p'],
-            ['a', 'b'],
+            ["a", "b"],
+            ["p"],
+            ["a", "b"],
+            ["x", "y"],
+            ["p"],
+            ["a", "b"],
         ]
         labels = [
-            LabelNode('1'),
-            LabelNode('2'),
-            LabelNode('3'),
-            LabelNode('4'),
-            LabelNode('5'),
-            LabelNode('6'),
+            LabelNode("1"),
+            LabelNode("2"),
+            LabelNode("3"),
+            LabelNode("4"),
+            LabelNode("5"),
+            LabelNode("6"),
         ]
 
         mdocs, mlabels = merge_identical_idocs(docs, labels)
 
         labels_expected = [
-            LabelNode('1,3,6'),
-            LabelNode('2,5'),
-            LabelNode('4'),
+            LabelNode("1,3,6"),
+            LabelNode("2,5"),
+            LabelNode("4"),
         ]
         docs_expected = [
-            ['a', 'b'],
-            ['p'],
-            ['x', 'y'],
+            ["a", "b"],
+            ["p"],
+            ["x", "y"],
         ]
 
         self.assertEqual(len(mdocs), len(docs_expected))
