@@ -1,6 +1,6 @@
 import unittest
 
-from dendro_text.dld import distance_int
+from dendro_text.dld import distance_int_list
 
 
 class TestPrintTree(unittest.TestCase):
@@ -9,10 +9,10 @@ class TestPrintTree(unittest.TestCase):
         list2 = [1] * 3 + [2] * 8 + [3] * 2
         list3 = [1] * 3 + [2] * 6 + [3] * 2
 
-        d = distance_int(list1, list2)
+        d = distance_int_list(list1, list2)
         self.assertEqual(d, 1)
 
-        d = distance_int(list1, list3)
+        d = distance_int_list(list1, list3)
         self.assertEqual(d, 3)
 
     def test_long_lists(self):
@@ -27,7 +27,7 @@ class TestPrintTree(unittest.TestCase):
         for i in range(1, 4000, 10):
             swap(i, i + 5, list2)
 
-        d = distance_int(list1, list2)
+        d = distance_int_list(list1, list2)
         self.assertEqual(d, 800)
 
 

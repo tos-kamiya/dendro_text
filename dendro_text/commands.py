@@ -6,7 +6,7 @@ import sys
 
 from tqdm import tqdm
 
-from .dld import distance_list
+from .dld import distance_int_list
 
 
 class DummyProgressBar:
@@ -71,12 +71,12 @@ def do_apply_preorocessors(preprocessors: List[str], target_file: str, temp_dir:
 
 
 def do_listing_in_order_of_increasing_distance(
-    labels: List[str], docs: List[List[str]], neighbors: int = -1, separator: str = "\t", progress: bool = False
+    labels: List[str], idocs: List[List[int]], neighbors: int = -1, separator: str = "\t", progress: bool = False
 ) -> None:
     dds: List[Tuple[int, int]] = [(0, 0)]
-    pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) if progress else DummyProgressBar()
-    for i in range(1, len(docs)):
-        d = distance_list(docs[0], docs[i])
+    pbar = tqdm(desc="Identifying neighbors", total=len(idocs) - 1, leave=False) if progress else DummyProgressBar()
+    for i in range(1, len(idocs)):
+        d = distance_int_list(idocs[0], idocs[i])
         dds.append((d, i))
         pbar.update(1)
     pbar.close()

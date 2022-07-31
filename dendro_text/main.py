@@ -1,4 +1,3 @@
-from itertools import count
 from typing import Callable, List, Optional, Tuple, Union
 
 import os.path
@@ -11,7 +10,7 @@ from docopt import docopt
 from tqdm import tqdm
 from init_attrs_with_kwargs import cast_set_attrs
 
-from .dld import distance_list
+from .dld import distance_int_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
 from .ts import text_split, text_split_by_char_type
 from .commands import DummyProgressBar, pyplot_dendrogram, do_listing_pyplot_font_names, do_apply_preorocessors, do_listing_in_order_of_increasing_distance
@@ -64,13 +63,13 @@ def gen_leaf_node_formatter(label_separator: str, label_header: str) -> Callable
     return format_leaf_node
 
 
-def merge_identical_docs(docs: List[List[str]], labels: List[LabelNode]) -> Tuple[List[List[str]], List[LabelNode]]:
-    docs = docs[:]
+def merge_identical_idocs(idocs: List[List[int]], labels: List[LabelNode]) -> Tuple[List[List[int]], List[LabelNode]]:
+    idocs = idocs[:]
     labels = labels[:]
 
     hash2indices = dict()
-    for i, d in enumerate(docs):
-        h = sum(hash(item) for item in d)
+    for i, idoc in enumerate(idocs):
+        h = sum(hash(idx) for idx in idoc)
         hash2indices.setdefault(h, []).append(i)
 
     indice_set_tobe_removed = set()
@@ -82,50 +81,50 @@ def merge_identical_docs(docs: List[List[str]], labels: List[LabelNode]) -> Tupl
             for idx2 in indices[i + 1:]:
                 if idx2 in indice_set_tobe_removed:
                     continue  # for idx2
-                if docs[idx1] == docs[idx2]:
+                if idocs[idx1] == idocs[idx2]:
                     labels[idx1].merge(labels[idx2])
                     indice_set_tobe_removed.add(idx2)
 
     indices_tobe_removed = list(indice_set_tobe_removed)
     indices_tobe_removed.sort(reverse=True)
     for i in indices_tobe_removed:
-        del docs[i]
+        del idocs[i]
         del labels[i]
 
-    return docs, labels
+    return idocs, labels
 
 
-def select_neighbors(docs: List[List[str]], labels: List[LabelNode], neighbors: int, progress: bool = False):
-    docs = docs[:]
+def select_neighbors(idocs: List[List[int]], labels: List[LabelNode], neighbors: int, progress: bool = False) -> Tuple[List[List[int]], List[LabelNode]]:
+    idocs = idocs[:]
     labels = labels[:]
     dds: List[Tuple[int, int]] = [(0, 0)]
-    pbar = tqdm(desc="Identifying neighbors", total=len(docs) - 1, leave=False) if progress else DummyProgressBar()
-    for i in range(1, len(docs)):
-        d = distance_list(docs[0], docs[i])
+    pbar = tqdm(desc="Identifying neighbors", total=len(idocs) - 1, leave=False) if progress else DummyProgressBar()
+    for i in range(1, len(idocs)):
+        d = distance_int_list(idocs[0], idocs[i])
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
     dds.sort()
     dds = dds[: neighbors + 1]
-    docs = [docs[i] for d, i in dds]
+    idocs = [idocs[i] for d, i in dds]
     labels = [labels[i] for d, i in dds]
-    return docs, labels
+    return idocs, labels
 
 
-def calc_dld(i_j_docs):
-    i, j, docs = i_j_docs
-    return (i, j), distance_list(docs[i], docs[j])
+def calc_dld(i_j_idocs):
+    i, j, idocs = i_j_idocs
+    return (i, j), distance_int_list(idocs[i], idocs[j])
 
 
-def calc_dendrogram(docs, progress=False, workers=None):
+def calc_dendrogram(idocs, progress=False, workers=None):
     import scipy.spatial.distance as distance
     from scipy.cluster.hierarchy import linkage
 
     if workers is None:
         workers = 1
 
-    len_docs = len(docs)
-    jobs = [(i, j, docs) for i in range(len_docs) for j in range(len_docs) if i < j]
+    len_docs = len(idocs)
+    jobs = [(i, j, idocs) for i in range(len_docs) for j in range(len_docs) if i < j]
     pbar = tqdm(desc="Building dendrogram", total=len(jobs), leave=False) if progress else DummyProgressBar()
     dld_tbl = dict()
     try:
@@ -290,22 +289,30 @@ def main():
     if temp_dir is not None:
         temp_dir.cleanup()
 
+    word_set = set()
+    for doc in docs:
+        word_set.update(doc)
+    words = list(word_set)
+    words.sort()
+    word_to_index = dict((w, i + 1) for i, w in enumerate(words))
+    idocs = [[word_to_index[w] for w in doc] for doc in docs]
+
     if option_neighbor_list != -1:
         # `list neighborsP command (option -N)
         label_strs = [label.format() for label in labels]
         do_listing_in_order_of_increasing_distance(
             label_strs,
-            docs,
+            idocs,
             neighbors=option_neighbor_list,
             separator=args.field_separator or LABEL_HEADER,
             progress=args.progress,
         )
         return
 
-    docs, labels = merge_identical_docs(docs, labels)
+    idocs, labels = merge_identical_idocs(idocs, labels)
 
     # special case: just one file is given or all files are equivalent
-    if len(docs) <= 1:
+    if len(idocs) <= 1:
         if args.pyplot:
             print("All documents are equivalent to each other.")
         else:
@@ -313,10 +320,10 @@ def main():
             print_tree(root_node, extract_child_nodes, format_leaf_node, tree_picture_table=tree_picture_table)
         return
 
-    if args.neighbors is not None and args.neighbors > 0 and len(docs) > args.neighbors + 1:
-        docs, labels = select_neighbors(docs, labels, args.neighbors, progress=args.progress)
+    if args.neighbors is not None and args.neighbors > 0 and len(idocs) > args.neighbors + 1:
+        idocs, labels = select_neighbors(idocs, labels, args.neighbors, progress=args.progress)
 
-    result = calc_dendrogram(docs, progress=args.progress, workers=args.workers)
+    result = calc_dendrogram(idocs, progress=args.progress, workers=args.workers)
     # print(repr(result))  # for debug
 
     # plot clustering result as dendrogram

@@ -1,6 +1,6 @@
 import unittest
 
-from dendro_text.main import LabelNode, merge_identical_docs
+from dendro_text.main import LabelNode, merge_identical_idocs
 
 
 class TestMergeIdenticalDocs(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestMergeIdenticalDocs(unittest.TestCase):
             LabelNode('3'),
         ]
 
-        mdocs, mlabels = merge_identical_docs(docs, labels)
+        mdocs, mlabels = merge_identical_idocs(docs, labels)
 
         self.assertCountEqual(mdocs, docs)
         for md, d in zip(mdocs, docs):
@@ -44,7 +44,7 @@ class TestMergeIdenticalDocs(unittest.TestCase):
             LabelNode('6'),
         ]
 
-        mdocs, mlabels = merge_identical_docs(docs, labels)
+        mdocs, mlabels = merge_identical_idocs(docs, labels)
 
         labels_expected = [
             LabelNode('1,3,6'),
