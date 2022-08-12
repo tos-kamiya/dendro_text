@@ -6,9 +6,9 @@ from dendro_text.main import LabelNode, merge_identical_idocs
 class TestMergeIdenticalDocs(unittest.TestCase):
     def test_no_identical_docs(self):
         docs = [
-            ["a", "b"],
-            ["a"],
-            ["b", "a"],
+            [1, 2],
+            [1],
+            [2, 1],
         ]
         labels = [
             LabelNode("1"),
@@ -28,12 +28,12 @@ class TestMergeIdenticalDocs(unittest.TestCase):
 
     def test_identical_docs(self):
         docs = [
-            ["a", "b"],
-            ["p"],
-            ["a", "b"],
-            ["x", "y"],
-            ["p"],
-            ["a", "b"],
+            [1, 2],
+            [11],
+            [1, 2],
+            [21, 22],
+            [11],
+            [1, 2],
         ]
         labels = [
             LabelNode("1"),
@@ -52,9 +52,9 @@ class TestMergeIdenticalDocs(unittest.TestCase):
             LabelNode("4"),
         ]
         docs_expected = [
-            ["a", "b"],
-            ["p"],
-            ["x", "y"],
+            [1, 2],
+            [11],
+            [21, 22],
         ]
 
         self.assertEqual(len(mdocs), len(docs_expected))
