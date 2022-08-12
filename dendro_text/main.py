@@ -17,7 +17,7 @@ from .commands import (
     DummyProgressBar,
     pyplot_dendrogram,
     do_listing_pyplot_font_names,
-    do_apply_preorocessors,
+    do_apply_preprocessors,
     do_listing_in_order_of_increasing_distance,
 )
 
@@ -271,7 +271,7 @@ def main():
     def read_doc(f):
         if args.prep:
             assert temp_dir is not None
-            doc = do_apply_preorocessors(args.prep, f, temp_dir.name)
+            doc = do_apply_preprocessors(args.prep, f, temp_dir.name)
         else:
             with open(f, "r") as inp:
                 try:

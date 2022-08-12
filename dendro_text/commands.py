@@ -42,7 +42,7 @@ def do_listing_pyplot_font_names():
     print("\n".join(font_names))
 
 
-def do_apply_preorocessors(preprocessors: List[str], target_file: str, temp_dir: str) -> str:
+def do_apply_preprocessors(preprocessors: List[str], target_file: str, temp_dir: str) -> str:
     if len(preprocessors) == 1:
         try:
             cmd = " ".join([preprocessors[0], target_file])
