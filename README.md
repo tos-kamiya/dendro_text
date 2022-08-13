@@ -151,10 +151,7 @@ $ dendro_text -c -N0 abccfg.txt *.txt
 
 Tokens that are only in the first file are indicated by a red background color, and tokens that are only in the second file are indicated by a blue background color.
 
-<p style="padding: 16px; font-family: monospace; background-color:#f8f8f8;">
-$ dendro_text -d -c abcdfg.txt abccfg.txt<br>
-abc<span style="background-color:red;">d</span><span style="background-color:blue;">c</span>fg.txt<br>
-</p>
+![](docs/images/run-diff.png)
 
 5. Create a dendrogram when ignoring a letter `c`, with option `--prep` (pre-processing).
 
