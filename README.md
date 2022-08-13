@@ -99,7 +99,7 @@ Option `-B` is to prevent tree pictures from being corrupted in environments whe
 #### Diff mode
 
 ```
-  -d --diff                 Diff mode.
+  -d --diff                 Diff mode (Implies option -U). **Experimental.**
 ```
 
 #### Show-words mode

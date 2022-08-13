@@ -12,7 +12,7 @@ from init_attrs_with_kwargs import cast_set_attrs
 try:
     from docopt import docopt
 except ImportError as _e:
-    sys.exit("Error: the Docopt module has not installed. Install it with `pip install docopt-ng`.")
+    sys.exit("Error: The Docopt module has not installed. Install it with `pip install docopt-ng`.")
 
 from .dld import distance_int_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
@@ -218,7 +218,7 @@ Options:
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
   -U --no-uniq-files        Do not remove duplicates from the input files.
-  -d --diff                 Diff mode. **Experimental**
+  -d --diff                 Diff mode (Implies option -U). **Experimental.**
   -W --show-words           Show words extracted from the input file.
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
@@ -271,7 +271,7 @@ def main():
     )
 
     files = args.file
-    if not args.no_uniq_files:
+    if not (args.diff or args.no_uniq_files):
         files = uniq(files)
 
     temp_dir = tempfile.TemporaryDirectory() if args.prep else None
@@ -330,7 +330,7 @@ def main():
         return
     elif args.diff:
         if len(docs) != 2:
-            sys.exit("Error: option -D requires exactly two files.")
+            sys.exit("Error: Option -d requires exactly two files.")
         ldoc, lidoc = docs[0], idocs[0]
         rdoc, ridoc = docs[1], idocs[1]
         do_diff(ldoc, lidoc, rdoc, ridoc, sep='\n' if args.line_by_line else '')
