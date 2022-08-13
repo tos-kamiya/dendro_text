@@ -16,27 +16,31 @@ Features:
 
 * **File-centric search**: A function to list files in order of similarity to a given file.
 
-**Please refer to [the home page on the github](https://github.com/tos-kamiya/dendro_text) for usage.**
+* **Diff (Experimental)**: Diff functionality to check for differences between files (as similarity differs depending on tokenization).
+
+**Please refer to [the home page on the github](https://github.com/tos-kamiya/dendro_text) for details of its usage.**
 
 ## Installation
 
-To make `dendro_text` compatible with both `docopt` and `docopt-ng`, dependencies on them are now explicitly extra dependencies.
-
-If you know either `docopt` or `docopt-ng` is already installed on your system, just try the following:
-
 ```sh
-pip install dendro_text
+pip install dendro-text
 ```
 
-If you are unsure `docopt` or `docopt-ng` is installed on your system, try the following:
+If you run the command dendro_text and get the following error message, please install dendro-text with docopt-ng.
 
 ```sh
-pip install dendro_text[docopt-ng]
+$ dendro_text
+Error: the Docopt module has not installed. Install it with `pip install docopt-ng`.
 ```
+
+```sh
+pip install dendro-text[docopt-ng]
+```
+
+(To make `dendro-text` compatible with both `docopt` and `docopt-ng`, dependencies on them are now explicitly extra dependencies.)
 
 To uninstall,
 
 ```sh
-pip uninstall dendro_text
+pip uninstall dendro-text
 ```
-

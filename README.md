@@ -16,6 +16,8 @@ Features:
 
 * **File-centric search**: A function to list files in order of similarity to a given file.
 
+* **Diff (Experimental)**: Diff functionality to check for differences between files (as similarity differs depending on tokenization).
+
 ## Installation
 
 ```sh
