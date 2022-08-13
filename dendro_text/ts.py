@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Tuple, Union
 
 from bisect import bisect
 import os
@@ -109,3 +109,32 @@ def text_split(text: str, filename: str) -> List[str]:
         else:
             words.append(token_str)
     return words
+
+
+def strip_common_head_and_tail(lw: str, rw: str) -> Tuple[str, str, str, str]:
+    common_head = []
+    for lc, rc in zip(lw, rw):
+        if lc == rc and ord(lc) < 256:
+            common_head.append(lc)
+        else:
+            break  # for lc, rc
+    len_common_head = len(common_head)
+    if len_common_head > 0:
+        lw = lw[len_common_head:]
+        rw = rw[len_common_head:]
+    common_tail = []
+    if lw and rw:
+        for i in range(min(len(lw), len(rw))):
+            lc = lw[-1-i]
+            rc = rw[-1-i]
+            if lc == rc and ord(lc) < 256:
+                common_tail.append(lc)
+            else:
+                break  # for i
+        len_common_tail = len(common_tail)
+        if len_common_tail > 0:
+            lw = lw[:-len_common_tail]
+            rw = rw[:-len_common_tail]
+    common_head_str = ''.join(common_head)
+    common_tail_str = ''.join(reversed(common_tail))
+    return common_head_str, common_tail_str, lw, rw

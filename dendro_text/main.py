@@ -333,7 +333,7 @@ def main():
             sys.exit("Error: option -D requires exactly two files.")
         ldoc, lidoc = docs[0], idocs[0]
         rdoc, ridoc = docs[1], idocs[1]
-        do_diff(ldoc, lidoc, rdoc, ridoc)
+        do_diff(ldoc, lidoc, rdoc, ridoc, sep='\n' if args.line_by_line else '')
         return
 
     # merge identical docs

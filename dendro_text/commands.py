@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from .dld import distance_int_list
 from .dld import edit_sequence_int_list, EditOp
+from .ts import strip_common_head_and_tail
 
 
 class DummyProgressBar:
@@ -95,7 +96,7 @@ INS_BEGIN = "\x1b[44m"
 INS_END = "\x1b[0m"
 
 
-def do_diff(ldoc: List[str], lidoc: List[int], rdoc: List[str], ridoc: List[int]) -> None:
+def do_diff(ldoc: List[str], lidoc: List[int], rdoc: List[str], ridoc: List[int], sep: str = '') -> None:
     es = edit_sequence_int_list(lidoc, ridoc)
     li = ri = 0
     for eop in es:
@@ -111,6 +112,9 @@ def do_diff(ldoc: List[str], lidoc: List[int], rdoc: List[str], ridoc: List[int]
             ri += 1
         else:
             assert eop == EditOp.SUB
-            sys.stdout.write("%s%s%s%s%s%s" % (DEL_BEGIN, ldoc[li], DEL_END, INS_BEGIN, rdoc[ri], INS_END))
+            h, t, lw, rw = strip_common_head_and_tail(ldoc[li], rdoc[ri])
+            sys.stdout.write("%s%s%s%s%s%s%s%s" % (h, DEL_BEGIN, lw, DEL_END, INS_BEGIN, rw, INS_END, t))
             li += 1
             ri += 1
+
+        sys.stdout.write(sep)
