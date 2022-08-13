@@ -7,6 +7,7 @@ import sys
 from tqdm import tqdm
 
 from .dld import distance_int_list
+from .dld import edit_sequence_int_list, EditOp
 
 
 class DummyProgressBar:
@@ -86,3 +87,30 @@ def do_listing_in_order_of_increasing_distance(
         dds = dds[: neighbors + 1]
     for dist, doci in dds:
         print("%d%s%s" % (dist, separator, labels[doci]))
+
+
+DEL_BEGIN = "\x1b[41m"
+DEL_END = "\x1b[0m"
+INS_BEGIN = "\x1b[44m"
+INS_END = "\x1b[0m"
+
+
+def do_diff(ldoc: List[str], lidoc: List[int], rdoc: List[str], ridoc: List[int]) -> None:
+    es = edit_sequence_int_list(lidoc, ridoc)
+    li = ri = 0
+    for eop in es:
+        if eop == EditOp.NO_EDIT:
+            sys.stdout.write(ldoc[li])
+            li += 1
+            ri += 1
+        elif eop == EditOp.DEL:
+            sys.stdout.write("%s%s%s" % (DEL_BEGIN, ldoc[li], DEL_END))
+            li += 1
+        elif eop == EditOp.INS:
+            sys.stdout.write("%s%s%s" % (INS_BEGIN, rdoc[ri], INS_END))
+            ri += 1
+        else:
+            assert eop == EditOp.SUB
+            sys.stdout.write("%s%s%s%s%s%s" % (DEL_BEGIN, ldoc[li], DEL_END, INS_BEGIN, rdoc[ri], INS_END))
+            li += 1
+            ri += 1

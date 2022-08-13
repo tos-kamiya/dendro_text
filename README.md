@@ -53,7 +53,6 @@ dendro_text <file>...
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
   -U --no-uniq-files        Do not remove duplicates from the input files.
-  -W --show-words           Show words extracted from the input file (No comparison is performed).
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
 ```
 
@@ -90,6 +89,18 @@ Option `-B` is to prevent tree pictures from being corrupted in environments whe
   -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
   --pyplot-font-names       List font names can be used in plotting dendrogram.
   --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
+```
+
+#### Diff mode
+
+```
+  -d --diff                 Diff mode.
+```
+
+#### Show-words mode
+
+```
+  -W --show-words           Show list of words extracted from the input file.
 ```
 
 ### Walk-through

@@ -19,6 +19,7 @@ from .commands import (
     do_listing_pyplot_font_names,
     do_apply_preprocessors,
     do_listing_in_order_of_increasing_distance,
+    do_diff,
 )
 
 
@@ -182,6 +183,7 @@ class Args:
     line_by_line: bool
     no_uniq_files: bool
     show_words: bool
+    diff: bool
     prep: List[str]
     max_depth: Optional[int]
     ascii_char_tree: bool
@@ -202,7 +204,8 @@ __doc__ = """Draw dendrogram of similarity among text files.
 
 Usage:
   dendro_text [options] [-c|-l|-t] [-n NUM|-N NUM] [-a|-B] [--prep=PREPROCESSOR]... <file>...
-  dendro_text -W [-c|-l|-t] <file>
+  dendro_text (-n NUM|-N NUM|-d)  [-c|-l|-t] [--prep=PREPROCESSOR]... <file>...
+  dendro_text --show-words [-c|-l|-t] [--prep=PREPROCESSOR]... <file>
   dendro_text --pyplot-font-names
   dendro_text --version
 
@@ -211,7 +214,8 @@ Options:
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
   -U --no-uniq-files        Do not remove duplicates from the input files.
-  -W --show-words           Show words extracted from the input file (No comparison is performed).
+  -d --diff                 Diff mode. **Experimental**
+  -W --show-words           Show words extracted from the input file.
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
   -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
@@ -293,6 +297,7 @@ def main():
             words = read_doc(f)
             for w in words:
                 print(w)
+        return
 
     # read documents from files
     labels: List[LabelNode] = [LabelNode(f) for f in files]
@@ -300,6 +305,7 @@ def main():
     if temp_dir is not None:
         temp_dir.cleanup()
 
+    # convert each document to int list (list of str -> list of int)
     word_set = set()
     for doc in docs:
         word_set.update(doc)
@@ -309,7 +315,6 @@ def main():
     idocs = [[word_to_index[w] for w in doc] for doc in docs]
 
     if option_neighbor_list != -1:
-        # `list neighborsP command (option -N)
         label_strs = [label.format() for label in labels]
         do_listing_in_order_of_increasing_distance(
             label_strs,
@@ -319,7 +324,15 @@ def main():
             progress=args.progress,
         )
         return
+    elif args.diff:
+        if len(docs) != 2:
+            sys.exit("Error: option -D requires exactly two files.")
+        ldoc, lidoc = docs[0], idocs[0]
+        rdoc, ridoc = docs[1], idocs[1]
+        do_diff(ldoc, lidoc, rdoc, ridoc)
+        return
 
+    # merge identical docs
     idocs, labels = merge_identical_idocs(idocs, labels)
 
     # special case: just one file is given or all files are equivalent
