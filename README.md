@@ -112,7 +112,7 @@ Option `-B` is to prevent tree pictures from being corrupted in environments whe
 
 1. Prepare several text files whose file names are the contents as they are.
 
-```sh
+```
 $ bash
 
 $ for t in ab{c,cc,ccc,cd,de}fg.txt; do echo $t > $t; done
@@ -127,7 +127,7 @@ abdefg.txt
 
 2. Create dendrograms showing file similarity by character-by-character comparison.
 
-```sh
+```
 $ dendro_text -c -a *.txt
 -+-+-+-- 	abcfg.txt
  | | `-- 	abcdfg.txt
@@ -136,9 +136,9 @@ $ dendro_text -c -a *.txt
  `-- 	abdefg.txt
 ````
 
-3. List files in order of similarity to a file `abccfg.txt`.
+3. List files in order of similarity to a file `abccfg.txt`, with option `-N0`.
 
-```sh
+```
 $ dendro_text -c -N0 abccfg.txt *.txt
 0	abccfg.txt
 1	abcccfg.txt
@@ -147,9 +147,20 @@ $ dendro_text -c -N0 abccfg.txt *.txt
 2	abdefg.txt
 ```
 
-4. Create a dendrogram when ignoring a letter `c`. Note that the three files `abcccfg.txt`, `abccfg.txt`, and `abcfg.txt` are now grouped in one node, because they no longer differ.
+4. Show differences between two files as text, with option `-d` (diff).
 
-```sh
+Tokens that are only in the first file are indicated by a red background color, and tokens that are only in the second file are indicated by a blue background color.
+
+<p style="padding: 16px; font-family: monospace; background-color:#f8f8f8;">
+$ dendro_text -d -c abcdfg.txt abccfg.txt<br>
+abc<span style="background-color:red;">d</span><span style="background-color:blue;">c</span>fg.txt<br>
+</p>
+
+5. Create a dendrogram when ignoring a letter `c`, with option `--prep` (pre-processing).
+
+Note that the three files `abcccfg.txt`, `abccfg.txt`, and `abcfg.txt` are now grouped in one node, because they no longer differ.
+
+```
 $ dendro_text -c -a *.txt --prep 'sed s/c//g'
 -+-+-- 	abcdfg.txt
  | `-- 	abcccfg.txt,abccfg.txt,abcfg.txt
