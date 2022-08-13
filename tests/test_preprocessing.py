@@ -10,12 +10,10 @@ script_dir = path.dirname(path.abspath(__file__))
 
 class TestDoApplyPreProcessors(unittest.TestCase):
     def setUp(self):
-        self.temp_dir = None
-        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_dir: tempfile.TemporaryDirectory[str] = tempfile.TemporaryDirectory()
 
     def tearDown(self):
-        if self.temp_dir:
-            self.temp_dir.cleanup()
+        self.temp_dir.cleanup()
 
     def test_single_preprocessor(self):
         tempd = self.temp_dir.name
