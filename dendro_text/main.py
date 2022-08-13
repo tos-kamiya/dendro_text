@@ -6,9 +6,13 @@ import tempfile
 from multiprocessing import Pool
 
 import numpy as np
-from docopt import docopt
 from tqdm import tqdm
 from init_attrs_with_kwargs import cast_set_attrs
+
+try:
+    from docopt import docopt
+except ImportError as _e:
+    sys.exit("Error: the Docopt module has not installed. Install it with `pip install docopt-ng`.")
 
 from .dld import distance_int_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
