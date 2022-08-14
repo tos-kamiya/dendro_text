@@ -12,11 +12,11 @@ Features:
 
 * **Parallel execution**: Supports execution on multiple CPU cores.
 
-* **Options in tokenization**: By default, the text is compared with a sequence of words extracted by splitting inputtext into different character types. Optionally, you can compare texts line by line, character by character, or token by token as extracted with lexical analyzers of programming languages.
+* **Options in tokenization**: By default, the text is compared with a sequence of words extracted by splitting input text into different character types. Optionally, you can compare texts line by line, character by character, or token by token as extracted with lexical analyzers of programming languages.
 
 * **File-centric search**: A function to list files in order of similarity to a given file.
 
-* **Diff (Experimental)**: Diff functionality to check for differences between files (as similarity differs depending on tokenization).
+* **Diff (Experimental)**: Diff functionality to show textual differences between files. (This function is provided to check for differences in similarity calculations depending on tokenization.)
 
 ## Installation
 
@@ -128,12 +128,12 @@ abdefg.txt
 2. Create dendrograms showing file similarity by character-by-character comparison.
 
 ```
-$ dendro_text -c -a *.txt
--+-+-+-- 	abcfg.txt
- | | `-- 	abcdfg.txt
- | `-+-- 	abccfg.txt
- |   `-- 	abcccfg.txt
- `-- 	abdefg.txt
+$ dendro_text -c *.txt
+─┬─┬─┬── 	abcfg.txt
+ │ │ └── 	abcdfg.txt
+ │ └─┬── 	abccfg.txt
+ │   └── 	abcccfg.txt
+ └── 	abdefg.txt
 ````
 
 3. List files in order of similarity to a file `abccfg.txt`, with option `-N0`.
@@ -158,10 +158,10 @@ Tokens that are only in the first file are indicated by a red background color, 
 Note that the three files `abcccfg.txt`, `abccfg.txt`, and `abcfg.txt` are now grouped in one node, because they no longer differ.
 
 ```
-$ dendro_text -c -a *.txt --prep 'sed s/c//g'
--+-+-- 	abcdfg.txt
- | `-- 	abcccfg.txt,abccfg.txt,abcfg.txt
- `-- 	abdefg.txt
+$ dendro_text -c *.txt --prep 'sed s/c//g'
+─┬─┬── 	abcdfg.txt
+ │ └── 	abcccfg.txt,abccfg.txt,abcfg.txt
+ └── 	abdefg.txt
 ```
 
 ## Note
