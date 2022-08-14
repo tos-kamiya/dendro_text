@@ -12,13 +12,11 @@ Features:
 
 * **Parallel execution**: Supports execution on multiple CPU cores.
 
-* **Options in tokenization**: By default, the text is compared with a sequence of words extracted by splitting inputtext into different character types. Optionally, you can compare texts line by line, character by character, or token by token as extracted with lexical analyzers of programming languages.
+* **Options in tokenization**: By default, the text is compared with a sequence of words extracted by splitting input text into different character types. Optionally, you can compare texts line by line, character by character, or token by token as extracted with lexical analyzers of programming languages.
 
 * **File-centric search**: A function to list files in order of similarity to a given file.
 
-* **Diff (Experimental)**: Diff functionality to check for differences between files (as similarity differs depending on tokenization).
-
-**Please refer to [the home page on the github](https://github.com/tos-kamiya/dendro_text) for details of its usage.**
+* **Diff (Experimental)**: Diff functionality to show textual differences between files. (This function is provided to check for differences in similarity calculations depending on tokenization.)
 
 ## Installation
 
