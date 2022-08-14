@@ -115,7 +115,7 @@ Option `-B` is to prevent tree pictures from being corrupted in environments whe
 ```
 $ bash
 
-$ for t in ab{c,cc,ccc,cd,de}fg.txt; do echo $t > $t; done
+$ for t in ab{c,cc,ccc,cd,de}fg; do echo $t > $t.txt; done
 
 $ ls -1
 abcccfg.txt
@@ -123,6 +123,13 @@ abccfg.txt
 abcdfg.txt
 abcfg.txt
 abdefg.txt
+```
+
+Here, the content of each file is the same as its filename, e.g.:
+
+```
+$ cat abccfg.txt
+abccfg
 ```
 
 2. Create dendrograms showing file similarity by character-by-character comparison.
