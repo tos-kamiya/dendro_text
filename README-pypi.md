@@ -3,10 +3,11 @@
 dendro_text
 ===========
 
-Draw dendrogram of similarity between text files.
+Draw a dendrogram of similarity between text files.
 
-Similarity is measured in terms of **Damerau-Levenshtein edit distance**.
-Distance of given two texts is count of inserted, deleted, and moved characters required to modify one text to the other (smaller means more similar).
+The similarity is measured in terms of **Damerau-Levenshtein edit distance**.
+The distance between given two texts is a count of inserted, deleted, and substituted characters required to modify one text to the other.
+A smaller value means that the two texts are more similar.
 
 Features:
 
@@ -24,11 +25,11 @@ Features:
 pip install dendro-text
 ```
 
-If you run the command dendro_text and get the following error message, please install dendro-text with docopt-ng.
+If you run the dendro_text and get the following error message, please install dendro-text with docopt-ng.
 
 ```sh
 $ dendro_text
-Error: the Docopt module has not installed. Install it with `pip install docopt-ng`.
+Error: the Docopt module has not been installed. Install it with `pip install docopt-ng`.
 ```
 
 ```sh

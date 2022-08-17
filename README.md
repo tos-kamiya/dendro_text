@@ -3,10 +3,11 @@
 dendro_text
 ===========
 
-Draw dendrogram of similarity between text files.
+Draw a dendrogram of similarity between text files.
 
-Similarity is measured in terms of **Damerau-Levenshtein edit distance**.
-Distance of given two texts is count of inserted, deleted, and moved characters required to modify one text to the other (smaller means more similar).
+The similarity is measured in terms of **Damerau-Levenshtein edit distance**.
+The distance between given two texts is a count of inserted, deleted, and substituted characters required to modify one text to the other.
+A smaller value means that the two texts are more similar.
 
 Features:
 
@@ -24,11 +25,11 @@ Features:
 pip install dendro-text
 ```
 
-If you run the command dendro_text and get the following error message, please install dendro-text with docopt-ng.
+If you run the dendro_text and get the following error message, please install dendro-text with docopt-ng.
 
 ```sh
 $ dendro_text
-Error: the Docopt module has not installed. Install it with `pip install docopt-ng`.
+Error: the Docopt module has not been installed. Install it with `pip install docopt-ng`.
 ```
 
 ```sh
@@ -65,14 +66,14 @@ dendro_text <file>...
 
 ```
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
-  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
-  -B --box-drawing-tree-with-fullwidth-space    Draw tree picture with box-drawing characters and fullwidth space.
+  -a --ascii-char-tree      Draw a tree picture with ASCII characters, not box-drawing characters.
+  -B --box-drawing-tree-with-fullwidth-space    Draw a tree picture with box-drawing characters and fullwidth space.
   -s --file-separator=S     File separator (default: comma).
   -f --field-separator=S    Separator of tree picture and file (default: tab).
 ```
 
 Option `-a` is for environments (such as C locale) where box-drawing characters turns into garbled characters.
-Option `-B` is to prevent tree pictures from being corrupted in environments where box-drawing characters are treated as full-width ones.
+Option `-B` is to prevent tree pictures from being corrupted in environments where box-drawing characters are treated as fullwidth ones.
 
 #### Parallel execution
 
@@ -136,22 +137,22 @@ abccfg
 
 ```
 $ dendro_text -c *.txt
-─┬─┬─┬── 	abcfg.txt
- │ │ └── 	abcdfg.txt
- │ └─┬── 	abccfg.txt
- │   └── 	abcccfg.txt
- └── 	abdefg.txt
+─┬─┬─┬──    abcfg.txt
+ │ │ └──    abcdfg.txt
+ │ └─┬──    abccfg.txt
+ │   └──    abcccfg.txt
+ └──    abdefg.txt
 ````
 
 3. List files in order of similarity to a file `abccfg.txt`, with option `-N0`.
 
 ```
 $ dendro_text -c -N0 abccfg.txt *.txt
-0	abccfg.txt
-1	abcccfg.txt
-1	abcdfg.txt
-1	abcfg.txt
-2	abdefg.txt
+0   abccfg.txt
+1   abcccfg.txt
+1   abcdfg.txt
+1   abcfg.txt
+2   abdefg.txt
 ```
 
 4. Show differences between two files as text, with option `-d` (diff).
@@ -160,24 +161,24 @@ Tokens that are only in the first file are indicated by a red background color, 
 
 ![](docs/images/run-diff.png)
 
-5. Create a dendrogram when ignoring a letter `c`, with option `--prep` (pre-processing).
+5. Create a dendrogram when ignoring a letter `c`, with option `--prep` (preprocessing).
 
 Note that the three files `abcccfg.txt`, `abccfg.txt`, and `abcfg.txt` are now grouped in one node, because they no longer differ.
 
 ```
 $ dendro_text -c *.txt --prep 'sed s/c//g'
-─┬─┬── 	abcdfg.txt
- │ └── 	abcccfg.txt,abccfg.txt,abcfg.txt
- └── 	abdefg.txt
+─┬─┬──  abcdfg.txt
+ │ └──  abcccfg.txt,abccfg.txt,abcfg.txt
+ └──    abdefg.txt
 ```
 
 ## Note
 
 ### The default tokenization
 
-The default tokenization (extracting words from text) method is to split text at the point where the type of letter changes.
+The default tokenization (extracting words from the text) method is to split text at the point where the type of letter changes.
 
-For example, a text "The version of dendro_text is marked as v1.1.1." turns into the following token sequence:
+For example, the text "The version of dendro_text is marked as v1.1.1." turns into the following token sequence:
 
 ```
 ["The", " ", "version", " ", "of", " ", "dendro", "_", "text", " ", 

@@ -252,7 +252,7 @@ def main():
         try:
             import matplotlib.pyplot as _plt
         except ImportError as _e:
-            sys.exit("Error: matplotlib.pyplot is not installed.")
+            sys.exit("Error: matplotlib.pyplot has not been installed.")
 
     if args.pyplot_font_names:
         do_listing_pyplot_font_names()
