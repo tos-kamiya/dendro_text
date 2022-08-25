@@ -19,6 +19,7 @@ from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_
 from .ts import text_split, text_split_by_char_type
 from .commands import (
     DummyProgressBar,
+    convert_to_int_docs,
     pyplot_dendrogram,
     do_listing_pyplot_font_names,
     do_apply_preprocessors,
@@ -309,14 +310,13 @@ def main():
     if temp_dir is not None:
         temp_dir.cleanup()
 
-    # convert each document to int list (list of str -> list of int)
-    word_set = set()
-    for doc in docs:
-        word_set.update(doc)
-    words = list(word_set)
-    words.sort()
-    word_to_index = dict((w, i + 1) for i, w in enumerate(words))
-    idocs = [[word_to_index[w] for w in doc] for doc in docs]
+    if args.diff:
+        if len(docs) != 2:
+            sys.exit("Error: Option -d requires exactly two files.")
+        do_diff(docs[0], docs[1], sep='\n' if args.line_by_line else '')
+        return
+
+    idocs, _word_to_index = convert_to_int_docs(docs)
 
     if option_neighbor_list != -1:
         label_strs = [label.format() for label in labels]
@@ -327,13 +327,6 @@ def main():
             separator=args.field_separator or LABEL_HEADER,
             progress=args.progress,
         )
-        return
-    elif args.diff:
-        if len(docs) != 2:
-            sys.exit("Error: Option -d requires exactly two files.")
-        ldoc, lidoc = docs[0], idocs[0]
-        rdoc, ridoc = docs[1], idocs[1]
-        do_diff(ldoc, lidoc, rdoc, ridoc, sep='\n' if args.line_by_line else '')
         return
 
     # merge identical docs

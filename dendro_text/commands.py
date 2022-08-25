@@ -1,4 +1,5 @@
-from typing import List, Tuple
+from sre_constants import IN
+from typing import Callable, Dict, List, Optional, Tuple, TypeVar
 
 import os.path
 import subprocess
@@ -90,31 +91,81 @@ def do_listing_in_order_of_increasing_distance(
         print("%d%s%s" % (dist, separator, labels[doci]))
 
 
-DEL_BEGIN = "\x1b[41m"
+def convert_to_int_docs(docs: List[List[str]]) -> Tuple[List[List[int]], Dict[str, int]]:
+    word_set = set()
+    for doc in docs:
+        word_set.update(doc)
+    words = list(word_set)
+    words.sort()
+    word_to_index = dict((w, i + 1) for i, w in enumerate(words))
+    idocs = [[word_to_index[w] for w in doc] for doc in docs]
+    return idocs, word_to_index
+
+
+DEL_BEGIN = "\x1b[101m"
 DEL_END = "\x1b[0m"
-INS_BEGIN = "\x1b[44m"
+INS_BEGIN = "\x1b[104m"
 INS_END = "\x1b[0m"
 
+WriteFunctionUnusedReturnValue = TypeVar("WriteFunctionUnusedReturnValue")
 
-def do_diff(ldoc: List[str], lidoc: List[int], rdoc: List[str], ridoc: List[int], sep: str = '') -> None:
+
+def do_diff(
+    ldoc: List[str],
+    rdoc: List[str],
+    write: Optional[Callable[[str], WriteFunctionUnusedReturnValue]] = None,
+    lbegend: Optional[Tuple[str, str]] = None,
+    rbegend: Optional[Tuple[str, str]] = None,
+    sep: str = '',
+) -> None:
+    if write is None:
+        write = sys.stdout.write
+    assert write is not None
+    (lbeg, lend) = (DEL_BEGIN, DEL_END) if lbegend is None else lbegend
+    (rbeg, rend) = (INS_BEGIN, INS_END) if rbegend is None else rbegend
+
+    docs = [ldoc, rdoc]
+    idocs, _word_to_index = convert_to_int_docs(docs)
+    lidoc, ridoc = idocs[0], idocs[1]
+
     es = edit_sequence_int_list(lidoc, ridoc)
     li = ri = 0
-    for eop in es:
-        if eop == EditOp.NO_EDIT:
-            sys.stdout.write(ldoc[li])
-            li += 1
-            ri += 1
-        elif eop == EditOp.DEL:
-            sys.stdout.write("%s%s%s" % (DEL_BEGIN, ldoc[li], DEL_END))
-            li += 1
-        elif eop == EditOp.INS:
-            sys.stdout.write("%s%s%s" % (INS_BEGIN, rdoc[ri], INS_END))
-            ri += 1
+    i = 0
+    len_es = len(es)
+    while i < len_es:
+        if es[i] == EditOp.NO_EDIT:
+            ws = []
+            while i < len_es and es[i] == EditOp.NO_EDIT:
+                ws.append(ldoc[li])
+                li += 1
+                ri += 1
+                i += 1
+            write("%s%s" % (''.join(ws), sep))
         else:
-            assert eop == EditOp.SUB
-            h, t, lw, rw = strip_common_head_and_tail(ldoc[li], rdoc[ri])
-            sys.stdout.write("%s%s%s%s%s%s%s%s" % (h, DEL_BEGIN, lw, DEL_END, INS_BEGIN, rw, INS_END, t))
-            li += 1
-            ri += 1
+            lws = []
+            rws = []
+            while i < len_es and es[i] != EditOp.NO_EDIT:
+                esi = es[i]
+                if esi == EditOp.DEL:
+                    lws.append(ldoc[li])
+                    li += 1
+                elif esi == EditOp.INS:
+                    rws.append(rdoc[ri])
+                    ri += 1
+                else:
+                    assert esi == EditOp.SUB
+                    lws.append(ldoc[li])
+                    li += 1
+                    rws.append(rdoc[ri])
+                    ri += 1
+                i += 1
 
-        sys.stdout.write(sep)
+            if not rws:
+                assert lws
+                write("%s%s%s%s" % (lbeg, ''.join(lws), lend, sep))
+            elif not lws:
+                write("%s%s%s%s" % (rbeg, ''.join(rws), rend, sep))
+            else:
+                h, t, lw, rw = strip_common_head_and_tail(''.join(lws), ''.join(rws))
+                write("%s%s%s%s%s%s%s%s%s" % (h, lbeg, lw, lend, rbeg, rw, rend, t, sep))
+
