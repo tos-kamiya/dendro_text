@@ -285,8 +285,8 @@ def main():
             with open(f, "r") as inp:
                 try:
                     doc = inp.read()
-                except Exception as _e:
-                    sys.exit("Error in reading a file: %s" % repr(f))
+                except Exception as e:
+                    sys.exit("Error in reading a file: %s\n%s" % (repr(f), e))
         if args.char_by_char:
             words = [c for c in doc]
         elif args.line_by_line:
