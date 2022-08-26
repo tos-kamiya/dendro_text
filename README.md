@@ -46,7 +46,7 @@ pip uninstall dendro-text
 
 ## Usage
 
-```
+```sh
 dendro_text <file>...
 ```
 
@@ -54,7 +54,7 @@ dendro_text <file>...
 
 #### Tokenization/preprocessing
 
-```
+```sh
   -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
@@ -64,7 +64,7 @@ dendro_text <file>...
 
 #### Dendrogram format
 
-```
+```sh
   -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
   -a --ascii-char-tree      Draw a tree picture with ASCII characters, not box-drawing characters.
   -B --box-drawing-tree-with-fullwidth-space    Draw a tree picture with box-drawing characters and fullwidth space.
@@ -77,21 +77,21 @@ Option `-B` is to prevent tree pictures from being corrupted in environments whe
 
 #### Parallel execution
 
-```
+```sh
   -j NUM                    Parallel execution. Number of worker processes.
   --progress                Show progress bar with ETA.
 ```
 
 #### File-centric search mode
 
-```
+```sh
   -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
   -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
 ```
 
 #### Pyplot ouutput mode
 
-```
+```sh
   -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
   --pyplot-font-names       List font names can be used in plotting dendrogram.
   --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
@@ -99,13 +99,13 @@ Option `-B` is to prevent tree pictures from being corrupted in environments whe
 
 #### Diff mode
 
-```
+```sh
   -d --diff                 Diff mode (Implies option -U). **Experimental.**
 ```
 
 #### Show-words mode
 
-```
+```sh
   -W --show-words           Show list of words extracted from the input file.
 ```
 
@@ -113,7 +113,7 @@ Option `-B` is to prevent tree pictures from being corrupted in environments whe
 
 1. Prepare several text files whose file names are the contents as they are.
 
-```
+```sh
 $ bash
 
 $ for t in ab{c,cc,ccc,cd,de}fg; do echo $t > $t.txt; done
@@ -128,25 +128,25 @@ abdefg.txt
 
 Here, the content of each file is the same as its filename, e.g.:
 
-```
+```sh
 $ cat abccfg.txt
 abccfg
 ```
 
 2. Create dendrograms showing file similarity by character-by-character comparison.
 
-```
+```sh
 $ dendro_text -c *.txt
 ─┬─┬─┬──    abcfg.txt
  │ │ └──    abcdfg.txt
  │ └─┬──    abccfg.txt
  │   └──    abcccfg.txt
  └──    abdefg.txt
-````
+```
 
 3. List files in order of similarity to a file `abccfg.txt`, with option `-N0`.
 
-```
+```sh
 $ dendro_text -c -N0 abccfg.txt *.txt
 0   abccfg.txt
 1   abcccfg.txt
@@ -165,7 +165,7 @@ Tokens that are only in the first file are indicated by a red background color, 
 
 Note that the three files `abcccfg.txt`, `abccfg.txt`, and `abcfg.txt` are now grouped in one node, because they no longer differ.
 
-```
+```sh
 $ dendro_text -c *.txt --prep 'sed s/c//g'
 ─┬─┬──  abcdfg.txt
  │ └──  abcccfg.txt,abccfg.txt,abcfg.txt
@@ -180,7 +180,7 @@ The default tokenization (extracting words from the text) method is to split tex
 
 For example, the text "The version of dendro_text is marked as v1.1.1." turns into the following token sequence:
 
-```
+```sh
 ["The", " ", "version", " ", "of", " ", "dendro", "_", "text", " ", 
 "is", " ", "marked", " ", "as", " ", "v", "1", ".", "1", ".", "1", "."]
 ```

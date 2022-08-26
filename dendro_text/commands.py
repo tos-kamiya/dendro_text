@@ -140,7 +140,7 @@ def do_diff(
                 li += 1
                 ri += 1
                 i += 1
-            write("%s%s" % (''.join(ws), sep))
+            write("%s%s" % (sep.join(ws), sep))
         else:
             lws = []
             rws = []
@@ -162,10 +162,15 @@ def do_diff(
 
             if not rws:
                 assert lws
-                write("%s%s%s%s" % (lbeg, ''.join(lws), lend, sep))
+                write("%s%s%s%s" % (lbeg, sep.join(lws), lend, sep))
             elif not lws:
-                write("%s%s%s%s" % (rbeg, ''.join(rws), rend, sep))
+                write("%s%s%s%s" % (rbeg, sep.join(rws), rend, sep))
             else:
-                h, t, lw, rw = strip_common_head_and_tail(''.join(lws), ''.join(rws))
-                write("%s%s%s%s%s%s%s%s%s" % (h, lbeg, lw, lend, rbeg, rw, rend, t, sep))
+                if '\n' not in sep:
+                    h, t, lw, rw = strip_common_head_and_tail(''.join(lws), ''.join(rws))
+                    write("%s%s%s%s%s%s%s%s" % (h, lbeg, lw, lend, rbeg, rw, rend, t))
+                else:
+                    lsep = lend + sep + lbeg
+                    rsep = rend + sep + rbeg
+                    write("%s%s%s%s%s%s%s%s" % (lbeg, lsep.join(lws), lend, sep, rbeg, rsep.join(rws), rend, sep))
 
