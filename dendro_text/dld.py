@@ -1,30 +1,73 @@
-from typing import List
+from typing import List as PList
 from enum import IntFlag
 
 # ref: https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
+# distance_int_list was copied from the above page and refactored somehow.
+
+try:
+
+    from numba import njit
+    from numba.typed import List as TList
 
 
-def distance_int_list(s1: List[int], s2: List[int]) -> int:
-    if len(s1) < len(s2):
-        tmp = s1
-        s1 = s2
-        s2 = tmp
-    assert len(s1) >= len(s2)
+    @njit(nogil=True)
+    def distance_int_list_i(s1, s2):
+        if len(s1) < len(s2):
+            tmp = s1
+            s1 = s2
+            s2 = tmp
+        assert len(s1) >= len(s2)
 
-    if len(s2) == 0:
-        return len(s1)
+        if len(s2) == 0:
+            return len(s1)
 
-    current_row = list(range(len(s2) + 1))
-    for i, c1 in enumerate(s1):
-        previous_row = current_row
-        current_row = [i + 1] + [0] * len(s2)
-        for j, c2 in enumerate(s2):
-            d_ins = previous_row[j + 1] + 1  # j+1 instead of j since previous_row and current_row are one character longer
-            d_del = current_row[j] + 1  # than s2
-            d_sub = previous_row[j] + (c1 != c2)
-            current_row[j + 1] = min(d_ins, d_del, d_sub)
+        current_row = TList()
+        current_row.extend(range(len(s2) + 1))
+        for i, c1 in enumerate(s1):
+            previous_row = current_row
+            current_row = TList()
+            current_row.append(i + 1)
+            [current_row.append(0) for _ in s2]
+            for j, c2 in enumerate(s2):
+                d_ins = previous_row[j + 1] + 1  # j+1 instead of j since previous_row and current_row are one character longer
+                d_del = current_row[j] + 1  # than s2
+                d_sub = previous_row[j] + (c1 != c2)
+                current_row[j + 1] = min(d_ins, d_del, d_sub)
 
-    return current_row[-1]
+        return current_row[-1]
+
+
+    def distance_int_list(s1: PList[int], s2: PList[int]) -> int:
+        ns1 = TList()
+        [ns1.append(i) for i in s1]
+        ns2 = TList()
+        [ns2.append(i) for i in s2]
+        return distance_int_list_i(ns1, ns2)
+
+
+except ImportError:
+
+    def distance_int_list(s1: PList[int], s2: PList[int]) -> int:
+        if len(s1) < len(s2):
+            tmp = s1
+            s1 = s2
+            s2 = tmp
+        assert len(s1) >= len(s2)
+
+        if len(s2) == 0:
+            return len(s1)
+
+        current_row = list(range(len(s2) + 1))
+        for i, c1 in enumerate(s1):
+            previous_row = current_row
+            current_row = [i + 1] + [0] * len(s2)
+            for j, c2 in enumerate(s2):
+                d_ins = previous_row[j + 1] + 1  # j+1 instead of j since previous_row and current_row are one character longer
+                d_del = current_row[j] + 1  # than s2
+                d_sub = previous_row[j] + (c1 != c2)
+                current_row[j + 1] = min(d_ins, d_del, d_sub)
+
+        return current_row[-1]
 
 
 class EditOp(IntFlag):
@@ -34,7 +77,7 @@ class EditOp(IntFlag):
     NO_EDIT = 3
 
 
-def edit_sequence_to_str(edit_seq: List[int]) -> str:
+def edit_sequence_to_str(edit_seq: PList[int]) -> str:
     r = []
     for eop in edit_seq:
         if eop == EditOp.SUB:
@@ -50,7 +93,7 @@ def edit_sequence_to_str(edit_seq: List[int]) -> str:
     return ''.join(r)
 
 
-def trans_edit_sequence(edit_seq: List[int]) -> List[int]:
+def trans_edit_sequence(edit_seq: PList[int]) -> PList[int]:
     r = []
     for eop in edit_seq:
         if eop == EditOp.DEL:
@@ -63,7 +106,7 @@ def trans_edit_sequence(edit_seq: List[int]) -> List[int]:
     return r
 
 
-def edit_sequence_int_list(s1: List[int], s2: List[int]) -> List[int]:
+def edit_sequence_int_list(s1: PList[int], s2: PList[int]) -> PList[int]:
     s1_s2_swapped = False
     if len(s1) < len(s2):
         tmp = s1

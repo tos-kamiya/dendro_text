@@ -11,7 +11,7 @@ A smaller value means that the two texts are more similar.
 
 Features:
 
-* **Parallel execution**: Supports execution on multiple CPU cores.
+* **Parallel execution**: Supports execution on multiple CPU cores. Plus, jit compilation by Numba (v1.6+).
 
 * **Options in tokenization**: By default, the text is compared with a sequence of words extracted by splitting input text into different character types. Optionally, you can compare texts line by line, character by character, or token by token as extracted with lexical analyzers of programming languages.
 

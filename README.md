@@ -11,7 +11,7 @@ A smaller value means that the two texts are more similar.
 
 Features:
 
-* **Parallel execution**: Supports execution on multiple CPU cores.
+* **Parallel execution**: Supports execution on multiple CPU cores. Plus, jit compilation by Numba (v1.6+).
 
 * **Options in tokenization**: By default, the text is compared with a sequence of words extracted by splitting input text into different character types. Optionally, you can compare texts line by line, character by character, or token by token as extracted with lexical analyzers of programming languages.
 
@@ -43,6 +43,18 @@ To uninstall,
 ```sh
 pip uninstall dendro-text
 ```
+
+### Numba (option)
+
+**To enable jit compilation by Numba, install according to the instructions on [Numba website](https://numba.pydata.org/).**
+
+Note that the installation of Numba differs for each platform. For example, on Ubuntu 20.04, in addition to installing numba with pip, the following is required:
+
+```sh
+sudo apt install python3-testresources
+```
+
+Numba is used transparently: if Numba is installed, jit-compiled functions are used; if not, pure python functions are used.
 
 ## Usage
 
