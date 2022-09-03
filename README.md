@@ -46,7 +46,7 @@ pip uninstall dendro-text
 
 ### Numba (option)
 
-**To enable jit compilation by Numba, install according to the instructions on [Numba website](https://numba.pydata.org/).**
+**To enable jit compilation by Numba, install it according to the instructions on [Numba website](https://numba.pydata.org/).**
 
 Note that the installation of Numba differs for each platform. For example, on Ubuntu 20.04, in addition to installing numba with pip, the following is required:
 
@@ -54,7 +54,7 @@ Note that the installation of Numba differs for each platform. For example, on U
 sudo apt install python3-testresources
 ```
 
-Numba is used transparently: if Numba is installed, jit-compiled functions are used; if not, pure python functions are used.
+-Numba is used transparently: if `dendro_text` detects that Numba is installed on the system during execution, jit-compiled functions are used; otherwise, pure python functions are used.
 
 ## Usage
 
