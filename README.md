@@ -54,7 +54,9 @@ Note that the installation of Numba differs for each platform. For example, on U
 sudo apt install python3-testresources
 ```
 
--Numba is used transparently: if `dendro_text` detects that Numba is installed on the system during execution, jit-compiled functions are used; otherwise, pure python functions are used.
+Numba is used transparently. When you run `dendro_text`, if it detects that Numba is installed on your system, `dendro_text` will call functions compiled in jit, otherwise it will call pure Python functions.
+
+The speedup with Numba was approx. 5x in one example I tried.
 
 ## Usage
 
