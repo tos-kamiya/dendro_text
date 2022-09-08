@@ -188,6 +188,22 @@ $ dendro_text -c *.txt --prep 'sed s/c//g'
 
 ## Note
 
+### Wildcard on Windows
+
+In Windows, wildcard expansion is supposed to be done on the command side, but `dendro_text` itself does not have wildcard expansion capability.
+
+If you want to specify files with wildcards in a windows environment, use Powershell's command substitution feature. For example, instead of the following command line:
+
+```sh
+dendro_text *.txt
+```
+
+Use the following:
+
+```sh
+dendro_text $(ls *.txt)
+```
+
 ### The default tokenization
 
 The default tokenization (extracting words from the text) method is to split text at the point where the type of letter changes.
