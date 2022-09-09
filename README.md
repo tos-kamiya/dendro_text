@@ -220,7 +220,8 @@ When you choose the tokenization method by option -l or -c, the edit distance is
 
 ### Blocks.txt
 
-When using the default tokenization, for the letters in C locale, letter types are symbols, alphabetic characters, spaces, etc. For Unicode letters, letter types are identified by referring to Unicode blocks.
+In the case of the default tokenization, i.e., splitting text into words at boundaries of varying character types, the character types are symbols, alphabetic characters, spaces, etc., for C locale characters.
+As for Unicode characters, the character type is identified by reference to the Unicode block.
 
 The enclosed file `Blocks.txt` is the definition of the Unicode 14.0 Blocks, and was taken from: <https://github.com/CNMan/Unicode/blob/master/UCD/Blocks.txt> .
 
@@ -238,3 +239,12 @@ $ dendro_text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
 ```
 
 Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
+
+
+## License
+
+* The source code of the functions `distance_int_list` and part of the function `edit_sequence_int_list` are modified material of the Wikipedia article <a href="https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python">"Algorithm Implementation/Strings/Levenshtein distance"</a>, which is released under the <a href="https://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share-Alike License 3.0</a>.
+
+* The file `Blocks.txt` is released under the [Unicode Data Files and Software License](https://www.unicode.org/license.txt).
+
+* All of the other source code is released under [the BSD 2-Clause License](LICENSE). 
