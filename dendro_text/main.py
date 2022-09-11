@@ -8,6 +8,7 @@ from multiprocessing import Pool
 import numpy as np
 from tqdm import tqdm
 from init_attrs_with_kwargs import cast_set_attrs
+from win_wildcard import get_windows_shell, SHELL_TO_EXPAND_WILDCARD_FUNC
 
 try:
     from docopt import docopt
@@ -272,6 +273,13 @@ def main():
     )
 
     files = args.file
+    ws = get_windows_shell()
+    if ws is not None:
+        expand_func = SHELL_TO_EXPAND_WILDCARD_FUNC[ws]
+        r = []
+        for f in files:
+            r.extend(expand_func(f))
+        files = r
     if not (args.diff or args.no_uniq_files):
         files = uniq(files)
 
