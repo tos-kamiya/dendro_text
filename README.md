@@ -207,7 +207,7 @@ When you choose the tokenization method by option -l or -c, the edit distance is
 In the case of the default tokenization, i.e., splitting text into words at boundaries of varying character types, the character types are symbols, alphabetic characters, spaces, etc., for C locale characters.
 As for Unicode characters, the character type is identified by reference to the Unicode block.
 
-The enclosed file `Blocks.txt` is the definition of the Unicode 14.0 Blocks, and was taken from: <https://github.com/CNMan/Unicode/blob/master/UCD/Blocks.txt> .
+The enclosed file `Blocks.txt` is the definition of the Unicode Blocks, and was taken from: <https://github.com/CNMan/Unicode/blob/master/UCD/Blocks.txt> .
 
 ### Multiple option --prep's
 
