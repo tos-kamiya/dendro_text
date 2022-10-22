@@ -10,6 +10,16 @@ import pygments.token
 import pygments.util
 
 
+def normalize_block_name(block_name):
+    b = block_name
+    b = re.sub(r"(?<=[a-z]{3})-[A-Z]$", "", b)
+    b = re.sub(r"\s+Supplement$", "", b)
+    b = re.sub(r"\s+Extended$", "", b)
+    b = re.sub(r"\s+Extensions$", "", b)
+    b = re.sub(r"\s+Extension(\s+.+)?$", "", b)
+    return b
+
+
 def _setup_table():
     data_file = os.path.join(os.path.dirname(__file__), "Blocks.txt")
     with open(data_file) as inp:
@@ -23,12 +33,7 @@ def _setup_table():
             cp_from = int(m.group(1), 16)
             cp_to = int(m.group(2), 16)
             block_name = m.group(3)
-
-            block_name = re.sub(r"\s+Extended(-.+)?$", "", block_name)
-            block_name = re.sub(r"\s+Extensions$", "", block_name)
-            block_name = re.sub(r"\s+Extension(\s+.+)?$", "", block_name)
-            block_name = re.sub(r"\s+Supplement$", "", block_name)
-
+            block_name = normalize_block_name(block_name)
             block_cp_names.append((cp_from, cp_to, block_name))
 
     block_cp_froms = [bcn[0] for bcn in block_cp_names]

@@ -1,6 +1,6 @@
 import unittest
 
-from dendro_text.ts import text_split_by_char_type, strip_common_head_and_tail
+from dendro_text.ts import text_split_by_char_type, strip_common_head_and_tail, normalize_block_name
 
 
 class TestTextSplit(unittest.TestCase):
@@ -31,3 +31,14 @@ class TestStripCommonHeadAndTail(unittest.TestCase):
         self.assertEqual(t, "")
         self.assertEqual(l, "1 ")
         self.assertEqual(r, "  2")
+
+
+class TestNormalizeBlockName(unittest.TestCase):
+    def test_names_with_suffixes(self):
+        self.assertEqual(normalize_block_name("Latin Extended-A"), "Latin")
+        self.assertEqual(normalize_block_name("Latin Extended-B"), "Latin")
+        self.assertEqual(normalize_block_name("Miscellaneous Mathematical Symbols-A"), "Miscellaneous Mathematical Symbols")
+        self.assertEqual(normalize_block_name("Supplemental Arrows-B"), "Supplemental Arrows")
+        self.assertEqual(normalize_block_name("CJK Unified Ideographs Extension C"), "CJK Unified Ideographs")
+        self.assertEqual(normalize_block_name("Phonetic Extensions"), "Phonetic")
+        self.assertEqual(normalize_block_name("Phonetic Extensions Supplement"), "Phonetic")
