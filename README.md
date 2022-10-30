@@ -58,6 +58,10 @@ Numba is used transparently. When you run `dendro_text`, if it detects that Numb
 
 The speedup with Numba was approx. 5x in one example I tried.
 
+### picaf (option)
+
+If you are doing tasks like investigating files in the dendrogram one by one (as I am doing), you may find the [picaf tool](https://github.com/tos-kamiya/picaf) useful.
+
 ## Usage
 
 ```sh
