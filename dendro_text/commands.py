@@ -1,4 +1,3 @@
-from sre_constants import IN
 from typing import Callable, Dict, List, Optional, Tuple, TypeVar
 
 import os.path
