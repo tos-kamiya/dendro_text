@@ -1,6 +1,6 @@
-[![Tests](https://github.com/tos-kamiya/dendro_text/actions/workflows/tests.yaml/badge.svg)](https://github.com/tos-kamiya/dendro_text/actions/workflows/tests.yaml)
+[![Tests](https://github.com/tos-kamiya/dendro-text/actions/workflows/tests.yaml/badge.svg)](https://github.com/tos-kamiya/dendro-text/actions/workflows/tests.yaml)
 
-dendro_text
+dendro-text
 ===========
 
 Draw a dendrogram of similarity between text files.
@@ -22,45 +22,25 @@ Features:
 ## Installation
 
 ```sh
-pip install dendro-text
+pipx install dendro-text
 ```
-
-If you run the dendro_text and get the following error message, please install dendro-text with docopt-ng.
-
-```sh
-$ dendro_text
-Error: the Docopt module has not been installed. Install it with `pip install docopt-ng`.
-```
-
-```sh
-pip install dendro-text[docopt-ng]
-```
-
-(To make `dendro-text` compatible with both `docopt` and `docopt-ng`, dependencies on them are now explicitly extra dependencies.)
 
 To uninstall,
 
 ```sh
-pip uninstall dendro-text
+pipx uninstall dendro-text
 ```
 
 ### Numba (option)
 
 **To enable jit compilation by Numba, install it according to the instructions on [Numba website](https://numba.pydata.org/).**
 
-Note that the installation of Numba differs for each platform. For example, on Ubuntu 20.04, in addition to installing `numba` with pip:
-
-```sh
-pip install numba
-```
-
-The following is required:
+To install dendro-text with Numba,
 
 ```sh
 sudo apt install python3-testresources
+pipx install dendro-text --preinstall numba
 ```
-
-Numba is used transparently. When you run `dendro_text`, if it detects that Numba is installed on your system, `dendro_text` will call functions compiled in jit, otherwise it will call pure Python functions.
 
 The speedup with Numba was approx. 5x in one example I tried.
 
@@ -71,7 +51,7 @@ If you are doing tasks like investigating files in the dendrogram one by one (as
 ## Usage
 
 ```sh
-dendro_text <file>...
+dendro-text <file>...
 ```
 
 ### Options
@@ -160,7 +140,7 @@ abccfg
 2. Create dendrograms showing file similarity by character-by-character comparison.
 
 ```sh
-$ dendro_text -c *.txt
+$ dendro-text -c *.txt
 ─┬─┬─┬──    abcfg.txt
  │ │ └──    abcdfg.txt
  │ └─┬──    abccfg.txt
@@ -171,7 +151,7 @@ $ dendro_text -c *.txt
 3. List files in order of similarity to a file `abccfg.txt`, with option `-N0`.
 
 ```sh
-$ dendro_text -c -N0 abccfg.txt *.txt
+$ dendro-text -c -N0 abccfg.txt *.txt
 0   abccfg.txt
 1   abcccfg.txt
 1   abcdfg.txt
@@ -190,7 +170,7 @@ Tokens that are only in the first file are indicated by a red background color, 
 Note that the three files `abcccfg.txt`, `abccfg.txt`, and `abcfg.txt` are now grouped in one node, because they no longer differ.
 
 ```sh
-$ dendro_text -c *.txt --prep 'sed s/c//g'
+$ dendro-text -c *.txt --prep 'sed s/c//g'
 ─┬─┬──  abcdfg.txt
  │ └──  abcccfg.txt,abccfg.txt,abcfg.txt
  └──    abdefg.txt
@@ -202,7 +182,7 @@ $ dendro_text -c *.txt --prep 'sed s/c//g'
 
 The default tokenization (extracting words from the text) method is to split text at the point where the type of letter changes.
 
-For example, the text "The version of dendro_text is marked as v1.1.1." turns into the following token sequence:
+For example, the text "The version of dendro-text is marked as v1.1.1." turns into the following token sequence:
 
 ```sh
 ["The", " ", "version", " ", "of", " ", "dendro", "_", "text", " ", 
@@ -229,7 +209,7 @@ The base name of the temporary file is the same as the original input file, but 
 For example, in the following command line,
 
 ```sh
-$ dendro_text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
+$ dendro-text --prep p1.sh --prep p2.sh t1.txt t2.txt t3.txt
 ```
 
 Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.txt`, `some/temp/dir/t2.txt` or `some/temp/dir/t3.txt` as input file.
@@ -242,3 +222,7 @@ Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.t
 * The file `Blocks.txt` is released under the [Unicode Data Files and Software License](https://www.unicode.org/license.txt).
 
 * All of the other source code is released under [the BSD 2-Clause License](LICENSE). 
+
+## Changelog
+
+* v2.0.0: The script is renamed to `dendro-text`. Drop windows support.

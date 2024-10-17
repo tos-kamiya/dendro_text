@@ -11,10 +11,11 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: BSD License",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: POSIX :: Linux",
-    "Operating System :: Microsoft :: Windows",
 ]
 requires-python = ">=3.8"
 dependencies = [
@@ -23,8 +24,6 @@ dependencies = [
     "pygments",
     # matplotlib  # for option -p
     "tqdm",
-    "init-attrs-with-kwargs>=0.2.0",
-    "win-wildcard>=0.5.0",
 ]
 dynamic = ["version"]
 
@@ -35,12 +34,8 @@ content-type = "text/markdown"
 [project.urls]
 Homepage = "https://github.com/tos-kamiya/dendro_text"
 
-[project.optional-dependencies]
-docopt-ng = ["docopt-ng"]
-docopt = ["docopt"]
-
 [project.scripts]
-dendro_text = "dendro_text.main:main"
+dendro-text = "dendro_text.main:main"
 
 [tool.setuptools]
 include-package-data = false
@@ -58,15 +53,16 @@ find = {namespaces = false}
 version = {file = ["dendro_text/VERSION"]}
 
 [tool.tox.tox]
-envlist = "py38, py39, py310"
+envlist = "py38, py39, py310, py311, py312"
 
 [tool.gh-actions]
 python = """
 3.8: py38
 3.9: py39
-3.10: py310"""
+3.10: py310
+3.11: py311
+3.12: py312"""
 
 [tool.testenv]
 commands = """
-python -m pip install docopt-ng
 python -m unittest discover"""

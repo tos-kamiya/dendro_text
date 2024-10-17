@@ -7,7 +7,7 @@ for t in ab{c,cc,ccc,cd,de}fg.txt; do
     echo $t > $tmp_dir/$t
 done
 
-dendro_text -c -f ' ' -N0 $tmp_dir/abccfg.txt $tmp_dir/*.txt | sed s+$tmp_dir/++g > $tmp_dir/result
+dendro-text -c -f ' ' -N0 $tmp_dir/abccfg.txt $tmp_dir/*.txt | sed s+$tmp_dir/++g > $tmp_dir/result
 
 cat <<'EOS' | diff $tmp_dir/result - 
 0 abccfg.txt

@@ -22,24 +22,11 @@ Features:
 ## Installation
 
 ```sh
-pip install dendro-text
+pipx install dendro-text
 ```
-
-If you run the dendro_text and get the following error message, please install dendro-text with docopt-ng.
-
-```sh
-$ dendro_text
-Error: the Docopt module has not been installed. Install it with `pip install docopt-ng`.
-```
-
-```sh
-pip install dendro-text[docopt-ng]
-```
-
-(To make `dendro-text` compatible with both `docopt` and `docopt-ng`, dependencies on them are now explicitly extra dependencies.)
 
 To uninstall,
 
 ```sh
-pip uninstall dendro-text
+pipx uninstall dendro-text
 ```

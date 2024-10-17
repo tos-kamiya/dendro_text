@@ -9,7 +9,7 @@ done
 
 echo iji > $tmp_dir/ij.txt
 
-dendro_text -f ' ' -a $tmp_dir/*.txt | sed s+$tmp_dir/++g > $tmp_dir/result
+dendro-text -f ' ' -a $tmp_dir/*.txt | sed s+$tmp_dir/++g > $tmp_dir/result
 
 cat <<'EOS' | diff $tmp_dir/result - 
 -+--  ij.txt

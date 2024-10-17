@@ -1,5 +1,6 @@
 from typing import Callable, List, Optional, Tuple, Union
 
+import argparse
 import os.path
 import sys
 import tempfile
@@ -7,13 +8,6 @@ from multiprocessing import Pool
 
 import numpy as np
 from tqdm import tqdm
-from init_attrs_with_kwargs import cast_set_attrs
-from win_wildcard import get_windows_shell, SHELL_TO_EXPAND_WILDCARD_FUNC
-
-try:
-    from docopt import docopt
-except ImportError as _e:
-    sys.exit("Error: The Docopt module has not installed. Install it with `pip install docopt-ng`.")
 
 from .dld import distance_int_list
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
@@ -182,65 +176,110 @@ def print_dendrogram(result, labels, format_leaf_node, max_depth=None, tree_pict
     )
 
 
-class Args:
-    file: List[str]
-    tokenize: bool
-    char_by_char: bool
-    line_by_line: bool
-    no_uniq_files: bool
-    show_words: bool
-    diff: bool
-    prep: List[str]
-    max_depth: Optional[int]
-    ascii_char_tree: bool
-    box_drawing_tree_with_fullwidth_space: bool
-    file_separator: Optional[str]
-    field_separator: Optional[str]
-    workers: Optional[int]
-    progress: bool
-    neighbors: Optional[int]
-    neighbor_list: Optional[int]
-    pyplot: bool
-    pyplot_font_names: bool
-    pyplot_font: Optional[str]
-    version: str
+def gen_parser():
+    parser = argparse.ArgumentParser(
+        description="Draw dendrogram of similarity among text files."
+    )
 
+    # Positional argument for <file>...
+    parser.add_argument(
+        'files', nargs='*', help='Input text files to compare.'
+    )
 
-__doc__ = """Draw dendrogram of similarity among text files.
+    # Mutually exclusive options for -c, -l, -t
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '-t', '--tokenize', action='store_true',
+        help='Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.'
+    )
+    group.add_argument(
+        '-c', '--char-by-char', action='store_true',
+        help='Compare texts in a char-by-char manner.'
+    )
+    group.add_argument(
+        '-l', '--line-by-line', action='store_true',
+        help='Compare texts in a line-by-line manner.'
+    )
 
-Usage:
-  dendro_text [options] [-c|-l|-t] [-n NUM|-N NUM] [-a|-B] [--prep=PREPROCESSOR]... <file>...
-  dendro_text (-n NUM|-N NUM|-d)  [-c|-l|-t] [--prep=PREPROCESSOR]... <file>...
-  dendro_text --show-words [-c|-l|-t] [--prep=PREPROCESSOR]... <file>
-  dendro_text --pyplot-font-names
-  dendro_text --version
+    # Other options
+    parser.add_argument(
+        '-U', '--no-uniq-files', action='store_true',
+        help='Do not remove duplicates from the input files.'
+    )
+    parser.add_argument(
+        '-d', '--diff', action='store_true',
+        help='Diff mode (Implies option -U). **Experimental.**'
+    )
+    parser.add_argument(
+        '-W', '--show-words', action='store_true',
+        help='Show words extracted from the input file.'
+    )
+    parser.add_argument(
+        '--prep', action='append', metavar='PREPROCESSOR',
+        help='Perform preprocessing for each input file.'
+    )
+    parser.add_argument(
+        '-m', '--max-depth', type=int, metavar='DEPTH',
+        help='Flatten the subtrees (of dendrogram) deeper than this.'
+    )
+    parser.add_argument(
+        '-a', '--ascii-char-tree', action='store_true',
+        help='Draw tree picture with ascii characters, not box-drawing characters.'
+    )
+    parser.add_argument(
+        '-B', '--box-drawing-tree-with-fullwidth-space', action='store_true',
+        help='Draw tree picture with box-drawing characters and fullwidth space.'
+    )
+    parser.add_argument(
+        '-s', '--file-separator', metavar='S', default=',',
+        help='File separator (default: comma).'
+    )
+    parser.add_argument(
+        '-f', '--field-separator', metavar='S', default='\t',
+        help='Separator of tree picture and file (default: tab).'
+    )
+    parser.add_argument(
+        '-j', '--workers', type=int, metavar='NUM',
+        help='Parallel execution. Number of worker processes.'
+    )
+    parser.add_argument(
+        '--progress', action='store_true',
+        help='Show progress bar with ETA.'
+    )
+    parser.add_argument(
+        '-n', '--neighbors', type=int, metavar='NUM',
+        help='Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.'
+    )
+    parser.add_argument(
+        '-N', '--neighbor-list', type=int, metavar='NUM',
+        help='List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.'
+    )
+    parser.add_argument(
+        '-p', '--pyplot', action='store_true',
+        help='Plot dendrogram with `matplotlib.pyplot`.'
+    )
+    parser.add_argument(
+        '--pyplot-font-names', action='store_true',
+        help='List font names that can be used in plotting dendrogram.'
+    )
+    parser.add_argument(
+        '--pyplot-font', metavar='FONTNAME',
+        help='Specify font name in plotting dendrogram.'
+    )
+    parser.add_argument(
+        '--version', action='version', version="dendro-text %s" % __version__,
+        help='Show program\'s version number and exit.'
+    )
 
-Options:
-  -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
-  -c --char-by-char         Compare texts in a char-by-char manner.
-  -l --line-by-line         Compare texts in a line-by-line manner.
-  -U --no-uniq-files        Do not remove duplicates from the input files.
-  -d --diff                 Diff mode (Implies option -U). **Experimental.**
-  -W --show-words           Show words extracted from the input file.
-  --prep=PREPROCESSOR       Perform preprocessing for each input file.
-  -m --max-depth=DEPTH      Flatten the subtrees (of dendrogram) deeper than this.
-  -a --ascii-char-tree      Draw tree picture with ascii characters, not box-drawing characters.
-  -B --box-drawing-tree-with-fullwidth-space    Draw tree picture with box-drawing characters and fullwidth space.
-  -s --file-separator=S     File separator (default: comma).
-  -f --field-separator=S    Separator of tree picture and file (default: tab).
-  -j NUM --workers=NUM      Parallel execution. Number of worker processes.
-  --progress                Show progress bar with ETA.
-  -n --neighbors=NUM        Pick up NUM (>=1) neighbors of (files similar to) the first file. Drop the other files.
-  -N --neighbor-list=NUM    List NUM neighbors of the first file, in order of increasing distance. `0` for +inf.
-  -p --pyplot               Plot dendrogram with `matplotlib.pyplot`
-  --pyplot-font-names       List font names can be used in plotting dendrogram.
-  --pyplot-font=FONTNAME    Specify font name in plotting dendrogram.
-"""
+    return parser
 
 
 def main():
-    docopt_args = docopt(__doc__, version="dendro_text %s" % __version__)
-    args: Args = cast_set_attrs(Args(), **docopt_args)
+    parser = gen_parser()
+    args = parser.parse_args()
+    if not args.files:
+        parser.print_help()
+        return
 
     option_neighbor_list = args.neighbor_list if args.neighbor_list is not None else -1
     if args.pyplot:
@@ -272,14 +311,7 @@ def main():
         else None
     )
 
-    files = args.file
-    ws = get_windows_shell()
-    if ws is not None:
-        expand_func = SHELL_TO_EXPAND_WILDCARD_FUNC[ws]
-        r = []
-        for f in files:
-            r.extend(expand_func(f))
-        files = r
+    files = args.files
     if not (args.diff or args.no_uniq_files):
         files = uniq(files)
 
