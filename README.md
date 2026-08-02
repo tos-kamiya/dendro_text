@@ -56,6 +56,8 @@ pipx install dendro-text --preinstall numba
 
 The speedup with Numba was approx. 5x in one example I tried.
 
+If Numba is installed but you want to use the reference implementation explicitly, pass `--no-numba`.
+
 ### picaf (option)
 
 If you are doing tasks like investigating files in the dendrogram one by one (as I am doing), you may find the [picaf tool](https://github.com/tos-kamiya/picaf) useful.
@@ -74,6 +76,7 @@ dendro-text <file>...
   -t --tokenize             Compare texts as tokens of languages indicated by file extensions, using Pygments lexer.
   -c --char-by-char         Compare texts in a char-by-char manner.
   -l --line-by-line         Compare texts in a line-by-line manner.
+  --no-numba                Use the pure-Python distance implementation instead of Numba.
   -U --no-uniq-files        Do not remove duplicates from the input files.
   --prep=PREPROCESSOR       Perform preprocessing for each input file.
 ```

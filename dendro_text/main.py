@@ -9,7 +9,7 @@ from multiprocessing import Pool
 import numpy as np
 from tqdm import tqdm
 
-from .dld import distance_int_list
+from .dld import distance_int_list, distance_int_list_python
 from .print_tree import print_tree, BOX_DRAWING_TREE_PICTURE_TABLE, BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
 from .ts import text_split, text_split_by_char_type
 from .commands import (
@@ -102,14 +102,18 @@ def merge_identical_idocs(idocs: List[List[int]], labels: List[LabelNode]) -> Tu
 
 
 def select_neighbors(
-    idocs: List[List[int]], labels: List[LabelNode], neighbors: int, progress: bool = False
+    idocs: List[List[int]],
+    labels: List[LabelNode],
+    neighbors: int,
+    progress: bool = False,
+    distance_function: Callable[[List[int], List[int]], int] = distance_int_list,
 ) -> Tuple[List[List[int]], List[LabelNode]]:
     idocs = idocs[:]
     labels = labels[:]
     dds: List[Tuple[int, int]] = [(0, 0)]
     pbar = tqdm(desc="Identifying neighbors", total=len(idocs) - 1, leave=False) if progress else DummyProgressBar()
     for i in range(1, len(idocs)):
-        d = distance_int_list(idocs[0], idocs[i])
+        d = distance_function(idocs[0], idocs[i])
         dds.append((d, i))
         pbar.update(1)
     pbar.close()
@@ -121,11 +125,11 @@ def select_neighbors(
 
 
 def calc_dld(i_j_idocs):
-    i, j, idocs = i_j_idocs
-    return (i, j), distance_int_list(idocs[i], idocs[j])
+    i, j, idocs, distance_function = i_j_idocs
+    return (i, j), distance_function(idocs[i], idocs[j])
 
 
-def calc_dendrogram(idocs, progress=False, workers=None):
+def calc_dendrogram(idocs, progress=False, workers=None, distance_function=distance_int_list):
     import scipy.spatial.distance as distance
     from scipy.cluster.hierarchy import linkage
 
@@ -133,7 +137,7 @@ def calc_dendrogram(idocs, progress=False, workers=None):
         workers = 1
 
     len_docs = len(idocs)
-    jobs = [(i, j, idocs) for i in range(len_docs) for j in range(len_docs) if i < j]
+    jobs = [(i, j, idocs, distance_function) for i in range(len_docs) for j in range(len_docs) if i < j]
     pbar = tqdm(desc="Building dendrogram", total=len(jobs), leave=False) if progress else DummyProgressBar()
     dld_tbl = dict()
     try:
@@ -199,6 +203,11 @@ def gen_parser():
     group.add_argument(
         '-l', '--line-by-line', action='store_true',
         help='Compare texts in a line-by-line manner.'
+    )
+
+    parser.add_argument(
+        '--no-numba', action='store_true',
+        help='Use the pure-Python distance implementation instead of Numba.'
     )
 
     # Other options
@@ -280,6 +289,8 @@ def main():
     if not args.files:
         parser.print_help()
         return
+
+    distance_function = distance_int_list_python if args.no_numba else distance_int_list
 
     option_neighbor_list = args.neighbor_list if args.neighbor_list is not None else -1
     if args.pyplot:
@@ -366,6 +377,7 @@ def main():
             neighbors=option_neighbor_list,
             separator=args.field_separator or LABEL_HEADER,
             progress=args.progress,
+            distance_function=distance_function,
         )
         return
 
@@ -382,9 +394,13 @@ def main():
         return
 
     if args.neighbors is not None and args.neighbors > 0 and len(idocs) > args.neighbors + 1:
-        idocs, labels = select_neighbors(idocs, labels, args.neighbors, progress=args.progress)
+        idocs, labels = select_neighbors(
+            idocs, labels, args.neighbors, progress=args.progress, distance_function=distance_function
+        )
 
-    result = calc_dendrogram(idocs, progress=args.progress, workers=args.workers)
+    result = calc_dendrogram(
+        idocs, progress=args.progress, workers=args.workers, distance_function=distance_function
+    )
     # print(repr(result))  # for debug
 
     # plot clustering result as dendrogram

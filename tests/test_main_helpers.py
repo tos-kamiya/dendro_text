@@ -28,7 +28,7 @@ class TestMainHelpers(unittest.TestCase):
         self.assertEqual(word_to_index, {"a": 1})
 
     def test_calc_dld_returns_pair_and_distance(self):
-        self.assertEqual(calc_dld((0, 1, [[1, 2], [1, 3]])), ((0, 1), 1))
+        self.assertEqual(calc_dld((0, 1, [[1, 2], [1, 3]], lambda left, right: 1)), ((0, 1), 1))
 
     def test_select_neighbors_keeps_first_document_and_sorts_by_distance(self):
         idocs = [[1], [1, 2], [1, 2, 3], [4, 5, 6]]
@@ -52,6 +52,7 @@ class TestMainHelpers(unittest.TestCase):
                 "0",
                 "--prep",
                 "cat",
+                "--no-numba",
                 "input.txt",
             ]
         )
@@ -62,6 +63,7 @@ class TestMainHelpers(unittest.TestCase):
         self.assertEqual(args.neighbors, 2)
         self.assertEqual(args.neighbor_list, 0)
         self.assertEqual(args.prep, ["cat"])
+        self.assertTrue(args.no_numba)
 
     def test_parser_rejects_multiple_tokenization_modes(self):
         with redirect_stderr(StringIO()):

@@ -3,7 +3,7 @@ import subprocess
 import sys
 import unittest
 
-from dendro_text.dld import EditOp, distance_int_list, edit_sequence_int_list
+from dendro_text.dld import EditOp, distance_int_list, distance_int_list_python, edit_sequence_int_list
 
 
 class TestDistanceIntList(unittest.TestCase):
@@ -16,6 +16,9 @@ class TestDistanceIntList(unittest.TestCase):
         list1 = [1, 2, 3, 2]
         list2 = [1, 4, 2]
         self.assertEqual(distance_int_list(list1, list2), distance_int_list(list2, list1))
+
+    def test_explicit_python_implementation(self):
+        self.assertEqual(distance_int_list_python([1, 2, 3], [1, 3]), 1)
 
     def test_small_lists(self):
         list1 = [1] * 3 + [2] * 9 + [3] * 2
