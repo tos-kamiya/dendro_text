@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Tuple, Union
 
@@ -72,6 +73,32 @@ def gen_leaf_node_formatter(label_separator: str, label_header: str) -> Callable
         return label_header + node.format(label_separator=label_separator)
 
     return format_leaf_node
+
+
+def _read_doc(filename: str, args, temp_dir) -> List[str]:
+    if args.prep:
+        assert temp_dir is not None
+        doc = do_apply_preprocessors(args.prep, filename, temp_dir)
+    else:
+        with open(filename, "r") as inp:
+            try:
+                doc = inp.read()
+            except Exception as e:
+                sys.exit("Error in reading a file: %s\n%s" % (repr(filename), e))
+    if args.char_by_char:
+        return [c for c in doc]
+    if args.line_by_line:
+        return doc.split("\n")
+    if args.tokenize:
+        return text_split(doc, filename)
+    return text_split_by_char_type(doc)
+
+
+def _iter_documents(files: List[str], args):
+    temp_dir_context = tempfile.TemporaryDirectory() if args.prep else nullcontext(None)
+    with temp_dir_context as temp_dir:
+        for filename in files:
+            yield filename, _read_doc(filename, args, temp_dir)
 
 
 def merge_identical_idocs(idocs: List[List[int]], labels: List[LabelNode]) -> Tuple[List[List[int]], List[LabelNode]]:
@@ -163,9 +190,11 @@ def calc_dendrogram(idocs, progress=False, workers=None, distance_function=dista
             for ij, v in pool.imap_unordered(calc_dld, jobs):
                 dld_tbl[ij] = v
                 pbar.update(1)
-    except KeyboardInterrupt as _e:
-        print("\nWarning: Stopped by Ctl+C. Show the results for now.", file=sys.stderr)
-    pbar.close()
+    except KeyboardInterrupt:
+        print("\nWarning: Distance calculation interrupted.", file=sys.stderr)
+        raise
+    finally:
+        pbar.close()
 
     dmat = np.zeros([len_docs, len_docs])
     for i in range(len_docs):
@@ -301,108 +330,30 @@ def gen_parser():
     return parser
 
 
-def main():
-    parser = gen_parser()
-    args = parser.parse_args()
-    if not args.files:
-        parser.print_help()
-        return
-
-    distance_function = distance_int_list_python if args.no_numba else distance_int_list
-
-    option_neighbor_list = args.neighbor_list if args.neighbor_list is not None else -1
-    if args.pyplot:
-        if args.max_depth is not None:
-            sys.exit("Error: Options --pyplot and --max-depth are mutually exclusive.")
-    else:
-        if args.pyplot_font:
-            sys.exit("Error: Option --pyplot-font is valid only with --pyplot.")
-
-    if args.pyplot or args.pyplot_font_names:
-        try:
-            import matplotlib.pyplot as _plt
-        except ImportError as _e:
-            sys.exit("Error: matplotlib.pyplot has not been installed.")
-
-    if args.pyplot_font_names:
-        do_listing_pyplot_font_names()
-        return
-
-    format_leaf_node = gen_leaf_node_formatter(
-        args.file_separator or LABEL_SEPARATOR, args.field_separator or LABEL_HEADER
-    )
-
-    tree_picture_table = (
-        BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
-        if args.box_drawing_tree_with_fullwidth_space
-        else BOX_DRAWING_TREE_PICTURE_TABLE
-        if not args.ascii_char_tree
-        else None
-    )
-
-    files = args.files
-    if not (args.diff or args.no_uniq_files):
-        files = uniq(files)
-
-    temp_dir = tempfile.TemporaryDirectory() if args.prep else None
-
-    def read_doc(f):
-        if args.prep:
-            assert temp_dir is not None
-            doc = do_apply_preprocessors(args.prep, f, temp_dir.name)
-        else:
-            with open(f, "r") as inp:
-                try:
-                    doc = inp.read()
-                except Exception as e:
-                    sys.exit("Error in reading a file: %s\n%s" % (repr(f), e))
-        if args.char_by_char:
-            words = [c for c in doc]
-        elif args.line_by_line:
-            words = doc.split("\n")
-        elif args.tokenize:
-            words = text_split(doc, f)
-        else:
-            words = text_split_by_char_type(doc)
-        return words
-
-    if args.show_words:
-        for f in files:
-            words = read_doc(f)
-            for w in words:
-                print(w)
-        return
-
-    # read documents from files
-    labels: List[LabelNode] = [LabelNode(f) for f in files]
-    docs = [read_doc(f) for f in files]
-    if temp_dir is not None:
-        temp_dir.cleanup()
-
-    if args.diff:
-        if len(docs) != 2:
-            sys.exit("Error: Option -d requires exactly two files.")
-        do_diff(docs[0], docs[1], sep='\n' if args.line_by_line else '')
-        return
-
+def _run_dendrogram_mode(
+    docs: List[List[str]],
+    labels: List[LabelNode],
+    args,
+    format_leaf_node: Callable[[LabelNode], str],
+    tree_picture_table,
+    distance_function: Callable[[List[int], List[int]], int],
+) -> None:
     idocs, _word_to_index = convert_to_int_docs(docs)
 
-    if option_neighbor_list != -1:
+    if args.neighbor_list is not None and args.neighbor_list != -1:
         label_strs = [label.format() for label in labels]
         do_listing_in_order_of_increasing_distance(
             label_strs,
             idocs,
-            neighbors=option_neighbor_list,
+            neighbors=args.neighbor_list,
             separator=args.field_separator or LABEL_HEADER,
             progress=args.progress,
             distance_function=distance_function,
         )
         return
 
-    # merge identical docs
     idocs, labels = merge_identical_idocs(idocs, labels)
 
-    # special case: just one file is given or all files are equivalent
     if len(idocs) <= 1:
         if args.pyplot:
             print("All documents are equivalent to each other.")
@@ -419,9 +370,6 @@ def main():
     result = calc_dendrogram(
         idocs, progress=args.progress, workers=args.workers, distance_function=distance_function
     )
-    # print(repr(result))  # for debug
-
-    # plot clustering result as dendrogram
     if args.pyplot:
         label_strs = [label.format() for label in labels]
         pyplot_dendrogram(result, label_strs, font=args.pyplot_font)
@@ -429,3 +377,68 @@ def main():
         print_dendrogram(
             result, labels, format_leaf_node, max_depth=args.max_depth, tree_picture_table=tree_picture_table
         )
+
+
+def _run_file_modes(
+    files: List[str],
+    args,
+    format_leaf_node: Callable[[LabelNode], str],
+    tree_picture_table,
+    distance_function: Callable[[List[int], List[int]], int],
+) -> None:
+    if args.show_words:
+        for _filename, words in _iter_documents(files, args):
+            for word in words:
+                print(word)
+        return
+
+    labels: List[LabelNode] = []
+    docs: List[List[str]] = []
+    for filename, doc in _iter_documents(files, args):
+        labels.append(LabelNode(filename))
+        docs.append(doc)
+
+    if args.diff:
+        if len(docs) != 2:
+            sys.exit("Error: Option -d requires exactly two files.")
+        do_diff(docs[0], docs[1], sep='\n' if args.line_by_line else '')
+        return
+
+    _run_dendrogram_mode(docs, labels, args, format_leaf_node, tree_picture_table, distance_function)
+
+
+def main():
+    parser = gen_parser()
+    args = parser.parse_args()
+    if not args.files:
+        parser.print_help()
+        return
+
+    distance_function = distance_int_list_python if args.no_numba else distance_int_list
+    if args.pyplot and args.max_depth is not None:
+        sys.exit("Error: Options --pyplot and --max-depth are mutually exclusive.")
+    if not args.pyplot and args.pyplot_font:
+        sys.exit("Error: Option --pyplot-font is valid only with --pyplot.")
+
+    if args.pyplot or args.pyplot_font_names:
+        try:
+            import matplotlib.pyplot as _plt
+        except ImportError as _e:
+            sys.exit("Error: matplotlib.pyplot has not been installed.")
+    if args.pyplot_font_names:
+        do_listing_pyplot_font_names()
+        return
+
+    format_leaf_node = gen_leaf_node_formatter(
+        args.file_separator or LABEL_SEPARATOR, args.field_separator or LABEL_HEADER
+    )
+    tree_picture_table = (
+        BOX_DRAWING_TREE_PICTURE_TABLE_W_FULLWIDTH_SPACE
+        if args.box_drawing_tree_with_fullwidth_space
+        else BOX_DRAWING_TREE_PICTURE_TABLE
+        if not args.ascii_char_tree
+        else None
+    )
+
+    files = args.files if (args.diff or args.no_uniq_files) else uniq(args.files)
+    _run_file_modes(files, args, format_leaf_node, tree_picture_table, distance_function)

@@ -1,10 +1,14 @@
 import unittest
 from contextlib import redirect_stderr
 from io import StringIO
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from dendro_text.main import (
     LabelNode,
     _init_distance_worker,
+    _iter_documents,
+    calc_dendrogram,
     calc_dld,
     convert_to_int_docs,
     gen_parser,
@@ -71,6 +75,34 @@ class TestMainHelpers(unittest.TestCase):
         with redirect_stderr(StringIO()):
             with self.assertRaises(SystemExit):
                 gen_parser().parse_args(["--char-by-char", "--line-by-line", "input.txt"])
+
+    def test_iter_documents_applies_preprocessors_in_a_managed_context(self):
+        with TemporaryDirectory() as temp_dir:
+            filename = f"{temp_dir}/input.txt"
+            with open(filename, "w") as output:
+                output.write("a B c\n")
+            args = gen_parser().parse_args(["--prep", "awk '{ print toupper($0) }'", filename])
+
+            documents = list(_iter_documents([filename], args))
+
+        self.assertEqual(documents, [(filename, ["A", " ", "B", " ", "C", "\n"])])
+
+    def test_calc_dendrogram_reraises_keyboard_interrupt(self):
+        class InterruptingPool:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def __enter__(self):
+                raise KeyboardInterrupt
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                return False
+
+        stderr = StringIO()
+        with patch("dendro_text.main.Pool", InterruptingPool), redirect_stderr(stderr):
+            with self.assertRaises(KeyboardInterrupt):
+                calc_dendrogram([[1], [2]])
+        self.assertIn("Distance calculation interrupted", stderr.getvalue())
 
 
 class TestListingOutput(unittest.TestCase):
