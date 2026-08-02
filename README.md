@@ -240,4 +240,6 @@ Preprocessing scripts `p1.sh` and `p2.sh` will get (such as) `some/temp/dir/t1.t
 
 ## Changelog
 
+* v2.0.2: Add the `--no-numba` option for explicitly selecting the pure-Python distance implementation. Refactor CLI execution and distance-calculation helpers, and expand regression-test coverage.
+* v2.0.1: Correct the documented distance algorithm, improve preprocessing of filenames and temporary files, and add uv-based development setup and regression tests.
 * v2.0.0: The script is renamed to `dendro-text`. Drop windows support.
