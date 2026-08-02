@@ -1,4 +1,5 @@
 import unittest
+import os
 import os.path as path
 import tempfile
 
@@ -51,6 +52,22 @@ class TestDoApplyPreProcessors(unittest.TestCase):
         preps = ["awk '{ print toupper($0) }'", "awk '/^A/'"]
         r = do_apply_preprocessors(preps, target_file, tempd)
         self.assertEqual(r, "A B C\n")
+
+    def test_same_basename_inputs_are_independent(self):
+        left_dir = path.join(self.temp_dir.name, "left")
+        right_dir = path.join(self.temp_dir.name, "right")
+        os.makedirs(left_dir)
+        os.makedirs(right_dir)
+        left_file = path.join(left_dir, "input.txt")
+        right_file = path.join(right_dir, "input.txt")
+        with open(left_file, "w") as outp:
+            outp.write("left\n")
+        with open(right_file, "w") as outp:
+            outp.write("right\n")
+
+        preps = ["cat", "cat"]
+        self.assertEqual(do_apply_preprocessors(preps, left_file, self.temp_dir.name), "left\n")
+        self.assertEqual(do_apply_preprocessors(preps, right_file, self.temp_dir.name), "right\n")
 
 
 if __name__ == "__main__":
