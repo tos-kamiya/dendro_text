@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable, List, Optional, Tuple, Union
 
 import argparse
@@ -41,12 +42,15 @@ LABEL_SEPARATOR = ","
 LABEL_HEADER = "\t"
 
 
+@dataclass(frozen=True, init=False)
 class LabelNode:
-    def __init__(self, *items):
-        self.items = list(items)
+    items: Tuple[str, ...]
 
-    def merge(self, other):
-        self.items.extend(other.items)
+    def __init__(self, *items: str):
+        object.__setattr__(self, "items", tuple(items))
+
+    def merge(self, other: "LabelNode") -> "LabelNode":
+        return LabelNode(*self.items, *other.items)
 
     def format(self, label_separator=LABEL_SEPARATOR):
         return label_separator.join(self.items)
@@ -89,7 +93,7 @@ def merge_identical_idocs(idocs: List[List[int]], labels: List[LabelNode]) -> Tu
                 if idx2 in indice_set_tobe_removed:
                     continue  # for idx2
                 if idocs[idx1] == idocs[idx2]:
-                    labels[idx1].merge(labels[idx2])
+                    labels[idx1] = labels[idx1].merge(labels[idx2])
                     indice_set_tobe_removed.add(idx2)
 
     indices_tobe_removed = list(indice_set_tobe_removed)
@@ -124,9 +128,22 @@ def select_neighbors(
     return idocs, labels
 
 
-def calc_dld(i_j_idocs):
-    i, j, idocs, distance_function = i_j_idocs
-    return (i, j), distance_function(idocs[i], idocs[j])
+_distance_worker_idocs: Optional[List[List[int]]] = None
+_distance_worker_function: Callable[[List[int], List[int]], int] = distance_int_list
+
+
+def _init_distance_worker(
+    idocs: List[List[int]], distance_function: Callable[[List[int], List[int]], int]
+) -> None:
+    global _distance_worker_idocs, _distance_worker_function
+    _distance_worker_idocs = idocs
+    _distance_worker_function = distance_function
+
+
+def calc_dld(index_pair: Tuple[int, int]) -> Tuple[Tuple[int, int], int]:
+    i, j = index_pair
+    assert _distance_worker_idocs is not None
+    return (i, j), _distance_worker_function(_distance_worker_idocs[i], _distance_worker_idocs[j])
 
 
 def calc_dendrogram(idocs, progress=False, workers=None, distance_function=distance_int_list):
@@ -137,11 +154,12 @@ def calc_dendrogram(idocs, progress=False, workers=None, distance_function=dista
         workers = 1
 
     len_docs = len(idocs)
-    jobs = [(i, j, idocs, distance_function) for i in range(len_docs) for j in range(len_docs) if i < j]
-    pbar = tqdm(desc="Building dendrogram", total=len(jobs), leave=False) if progress else DummyProgressBar()
+    jobs = ((i, j) for i in range(len_docs) for j in range(len_docs) if i < j)
+    total_jobs = len_docs * (len_docs - 1) // 2
+    pbar = tqdm(desc="Building dendrogram", total=total_jobs, leave=False) if progress else DummyProgressBar()
     dld_tbl = dict()
     try:
-        with Pool(workers) as pool:
+        with Pool(workers, initializer=_init_distance_worker, initargs=(idocs, distance_function)) as pool:
             for ij, v in pool.imap_unordered(calc_dld, jobs):
                 dld_tbl[ij] = v
                 pbar.update(1)

@@ -4,6 +4,18 @@ from dendro_text.main import LabelNode, merge_identical_idocs
 
 
 class TestMergeIdenticalDocs(unittest.TestCase):
+    def test_label_node_is_immutable(self):
+        label = LabelNode("1")
+
+        with self.assertRaises((AttributeError, TypeError)):
+            label.items = ("2",)
+        with self.assertRaises(TypeError):
+            label.items[0] = "2"
+
+        merged = label.merge(LabelNode("2"))
+        self.assertEqual(label.format(), "1")
+        self.assertEqual(merged.format(), "1,2")
+
     def test_no_identical_docs(self):
         docs = [
             [1, 2],
@@ -43,6 +55,7 @@ class TestMergeIdenticalDocs(unittest.TestCase):
             LabelNode("5"),
             LabelNode("6"),
         ]
+        original_label_strings = [label.format() for label in labels]
 
         mdocs, mlabels = merge_identical_idocs(docs, labels)
 
@@ -64,3 +77,4 @@ class TestMergeIdenticalDocs(unittest.TestCase):
         self.assertEqual(len(mlabels), len(labels_expected))
         for ml, l in zip(mlabels, labels_expected):
             self.assertEqual(ml.format(), l.format())
+        self.assertEqual([label.format() for label in labels], original_label_strings)

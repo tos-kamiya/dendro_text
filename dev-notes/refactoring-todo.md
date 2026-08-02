@@ -13,7 +13,7 @@
 - [ ] Numbaの使用状況を内部的に確認できる仕組みと、optional dependencyとしての定義を検討する。
 - [ ] `main()` の責務を、引数検証・文書読み込み・diff・近傍検索・デンドログラム処理へ分割する。
 - [ ] `TemporaryDirectory` をコンテキストマネージャーで管理し、早期 return や例外時も一時ファイルを確実に削除する。
-- [ ] `merge_identical_idocs()` を tuple キーによる明確なグルーピングに置き換え、`LabelNode` の入力ラベルを意図せず変更しないようにする。
+- [x] `LabelNode` を不変に扱い、`merge_identical_idocs()` が入力ラベルを意図せず変更しないようにする。
 - [ ] `print_tree()` の `file=sys.stdout` を実行時解決に変更し、再帰処理の深さや出力契約を整理する。
-- [ ] `calc_dendrogram()` のジョブごとの `idocs` 重複渡しをやめ、距離計算のメモリ使用量と multiprocessing のシリアライズコストを改善する。
+- [x] `calc_dendrogram()` のジョブごとの `idocs` 重複渡しをやめ、ワーカー初期化時に一度だけ渡す。
 - [ ] `KeyboardInterrupt` 時に不完全な距離表を使わず、安全に中断できるようにする。

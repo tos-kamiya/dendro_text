@@ -4,6 +4,7 @@ from io import StringIO
 
 from dendro_text.main import (
     LabelNode,
+    _init_distance_worker,
     calc_dld,
     convert_to_int_docs,
     gen_parser,
@@ -28,7 +29,8 @@ class TestMainHelpers(unittest.TestCase):
         self.assertEqual(word_to_index, {"a": 1})
 
     def test_calc_dld_returns_pair_and_distance(self):
-        self.assertEqual(calc_dld((0, 1, [[1, 2], [1, 3]], lambda left, right: 1)), ((0, 1), 1))
+        _init_distance_worker([[1, 2], [1, 3]], lambda left, right: 1)
+        self.assertEqual(calc_dld((0, 1)), ((0, 1), 1))
 
     def test_select_neighbors_keeps_first_document_and_sorts_by_distance(self):
         idocs = [[1], [1, 2], [1, 2, 3], [4, 5, 6]]
