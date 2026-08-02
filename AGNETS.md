@@ -20,7 +20,7 @@
 
 ## 開発環境
 
-- 対応 Python: 3.8 以上（CI では 3.8〜3.12 を検証）
+- 対応 Python: 3.10〜3.14（CI では全バージョンを検証）
 - 開発時は uv でプロジェクト環境を管理してください。
 
 ```sh
@@ -39,6 +39,12 @@ uv run python -m unittest discover
 
 ```sh
 uv run tox
+```
+
+uvでPython 3.10〜3.14の専用環境を作成し、各環境でテストとcompileallを実行する場合は、次のスクリプトを使います。
+
+```sh
+scripts/run_python_matrix.sh
 ```
 
 CI と同じ CLI の回帰テストも必要に応じて実行してください。

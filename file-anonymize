@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""Create anonymized copies of files for use with dendro-text."""
+
+import argparse
+import csv
+import glob
+import os
+import random
+import shutil
+import sys
+from pathlib import Path
+from typing import Iterable, List, Optional, Sequence, Tuple
+
+
+def _expand_inputs(patterns: Iterable[str]) -> List[Tuple[str, str]]:
+    """Expand shell-style patterns and remove duplicate paths in input order."""
+    filenames: List[Tuple[str, str]] = []
+    seen = set()
+    for pattern in patterns:
+        matches = glob.glob(pattern) if glob.has_magic(pattern) else [pattern]
+        for filename in matches:
+            source_path = os.path.abspath(filename)
+            if os.path.isfile(source_path) and source_path not in seen:
+                filenames.append((source_path, filename))
+                seen.add(source_path)
+    return filenames
+
+
+def _suffixes(filename: str) -> str:
+    return "".join(Path(filename).suffixes)
+
+
+def anonymize_files(
+    filenames: Sequence[str], output_dir: str, mapping_file: str = "mapping.csv"
+) -> List[Tuple[str, str]]:
+    """Copy files under randomized serial names and write a mapping CSV.
+
+    The copies use resolved paths internally, while the CSV retains each input
+    path's spelling as supplied on the command line.
+    """
+    source_files = _expand_inputs(filenames)
+    if not source_files:
+        raise ValueError("no input files matched")
+
+    destination = os.path.abspath(output_dir)
+    os.makedirs(destination, exist_ok=True)
+    shuffled = source_files[:]
+    random.SystemRandom().shuffle(shuffled)
+    width = max(1, len(str(len(shuffled))))
+    output_files = [
+        os.path.join(destination, "%0*d%s" % (width, number, _suffixes(source)))
+        for number, (source, _original_filename) in enumerate(shuffled, 1)
+    ]
+    mapping_path = mapping_file if os.path.isabs(mapping_file) else os.path.join(destination, mapping_file)
+    existing_files = [path for path in output_files if os.path.exists(path)]
+    if existing_files:
+        names = ", ".join(os.path.basename(path) for path in existing_files)
+        raise FileExistsError("output file already exists: %s" % names)
+    if os.path.exists(mapping_path):
+        raise FileExistsError("mapping file already exists: %s" % mapping_path)
+    if os.path.abspath(mapping_path) in {os.path.abspath(path) for path in output_files}:
+        raise ValueError("mapping file conflicts with an output file: %s" % mapping_path)
+
+    mapping: List[Tuple[str, str]] = []
+    for number, ((source, original_filename), output_file) in enumerate(zip(shuffled, output_files), 1):
+        anonymous_name = "%0*d%s" % (width, number, _suffixes(source))
+        shutil.copy2(source, output_file)
+        mapping.append((anonymous_name, original_filename))
+
+    os.makedirs(os.path.dirname(os.path.abspath(mapping_path)), exist_ok=True)
+    with open(mapping_path, "w", encoding="utf-8", newline="") as output:
+        writer = csv.writer(output)
+        writer.writerow(("anonymous_filename", "original_filename"))
+        writer.writerows(mapping)
+    return mapping
+
+
+def gen_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Create randomized serial-name copies of files for use with dendro-text.",
+        epilog=(
+            "Examples:\n"
+            "  file-anonymize *.txt\n"
+            "  file-anonymize --output-dir work *.ipynb\n"
+            "  dendro-text -t work/*.ipynb\n\n"
+            "The default output directory is the current directory. File suffixes "
+            "are preserved, and numbering is zero-padded to the number of input "
+            "files (for example, 01.txt, 02.txt). Input files and an existing "
+            "mapping CSV are never overwritten; the command stops before copying "
+            "if a conflict is found. The mapping CSV records the generated and "
+            "original filenames."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("-o", "--output-dir", default=".", help="directory for anonymized copies (default: current directory)")
+    parser.add_argument("-m", "--mapping", default="mapping.csv", help="mapping CSV name")
+    parser.add_argument("files", nargs="+", metavar="FILE", help="input files or shell-style patterns")
+    return parser
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    args = gen_parser().parse_args(argv)
+    try:
+        mapping = anonymize_files(args.files, args.output_dir, args.mapping)
+    except (OSError, ValueError, shutil.Error) as error:
+        print("file-anonymize: %s" % error, file=sys.stderr)
+        return 2
+    print("Created %d anonymized files in %s" % (len(mapping), os.path.abspath(args.output_dir)))
+    mapping_path = args.mapping if os.path.isabs(args.mapping) else os.path.join(args.output_dir, args.mapping)
+    print("Mapping: %s" % os.path.abspath(mapping_path))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
