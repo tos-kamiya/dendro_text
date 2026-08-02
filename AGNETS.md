@@ -2,13 +2,13 @@
 
 ## プロジェクト概要
 
-`dendro-text` は、テキストファイル間の Damerau-Levenshtein 編集距離を使って、類似度のデンドログラムを表示する Python CLI パッケージです。主なエントリーポイントは `dendro_text.main:main` で、インストール後は `dendro-text` コマンドとして実行できます。
+`dendro-text` は、テキストファイル間の Levenshtein 編集距離を使って、類似度のデンドログラムを表示する Python CLI パッケージです。主なエントリーポイントは `dendro_text.main:main` で、インストール後は `dendro-text` コマンドとして実行できます。
 
 ## リポジトリ構成
 
 - `dendro_text/`: パッケージ本体
   - `main.py`: CLI 引数処理、前処理、距離計算、デンドログラム生成の統合
-  - `dld.py`: Damerau-Levenshtein 距離と編集系列
+  - `dld.py`: Levenshtein 距離と編集系列
   - `ts.py`: テキストのトークン化と Unicode ブロック処理
   - `commands.py`: 前処理・diff などのコマンド処理
   - `print_tree.py`: ASCII／罫線文字によるツリー表示
@@ -21,10 +21,10 @@
 ## 開発環境
 
 - 対応 Python: 3.8 以上（CI では 3.8〜3.12 を検証）
-- 開発時は仮想環境を使用し、パッケージを editable install してください。
+- 開発時は uv でプロジェクト環境を管理してください。
 
 ```sh
-python -m pip install -e .
+uv sync --group dev
 ```
 
 ## テスト
@@ -32,13 +32,13 @@ python -m pip install -e .
 通常の Python テストは次のコマンドで実行します。
 
 ```sh
-python -m unittest discover
+uv run python -m unittest discover
 ```
 
 対応バージョンをまとめて確認する場合は tox を使います。
 
 ```sh
-tox
+uv run tox
 ```
 
 CI と同じ CLI の回帰テストも必要に応じて実行してください。
@@ -61,7 +61,7 @@ bash tests/test_identical_files.sh
 
 ## 変更時の確認
 
-変更後は、少なくとも `python -m unittest discover` と変更箇所に対応する CLI シェルテストを実行してください。依存関係、CLI オプション、パッケージデータ、公開動作を変更した場合は README と `pyproject.toml` の整合性も確認してください。
+変更後は、少なくとも `uv run python -m unittest discover` と変更箇所に対応する CLI シェルテストを実行してください。依存関係、CLI オプション、パッケージデータ、公開動作を変更した場合は README と `pyproject.toml`、`uv.lock` の整合性も確認してください。
 
 ## バージョン管理
 

@@ -33,6 +33,15 @@ class TestDoApplyPreProcessors(unittest.TestCase):
         r = do_apply_preprocessors(preps, target_file, tempd)
         self.assertEqual(r, "A B C\n")
 
+    def test_filename_with_spaces(self):
+        tempd = self.temp_dir.name
+        target_file = path.join(tempd, "input file.txt")
+        with open(target_file, "w") as outp:
+            outp.write("content\n")
+
+        r = do_apply_preprocessors(["cat"], target_file, tempd)
+        self.assertEqual(r, "content\n")
+
 
 if __name__ == "__main__":
     unittest.main()

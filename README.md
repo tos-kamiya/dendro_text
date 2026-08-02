@@ -5,7 +5,7 @@ dendro-text
 
 Draw a dendrogram of similarity between text files.
 
-The similarity is measured in terms of **Damerau-Levenshtein edit distance**.
+The similarity is measured in terms of **Levenshtein edit distance**.
 The distance between given two texts is a count of inserted, deleted, and substituted characters required to modify one text to the other.
 A smaller value means that the two texts are more similar.
 
@@ -23,6 +23,18 @@ Features:
 
 ```sh
 pipx install dendro-text
+```
+
+For development, create the project environment with [uv](https://docs.astral.sh/uv/):
+
+```sh
+uv sync --group dev
+```
+
+Run the test suite with:
+
+```sh
+uv run python -m unittest discover
 ```
 
 To uninstall,

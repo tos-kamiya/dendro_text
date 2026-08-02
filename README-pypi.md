@@ -5,7 +5,7 @@ dendro_text
 
 Draw a dendrogram of similarity between text files.
 
-The similarity is measured in terms of **Damerau-Levenshtein edit distance**.
+The similarity is measured in terms of **Levenshtein edit distance**.
 The distance between given two texts is a count of inserted, deleted, and substituted characters required to modify one text to the other.
 A smaller value means that the two texts are more similar.
 

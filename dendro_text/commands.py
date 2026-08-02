@@ -1,14 +1,23 @@
 from typing import Callable, Dict, List, Optional, Tuple, TypeVar
 
 import os.path
+import shlex
+import shutil
 import subprocess
 import sys
+import tempfile
 
 from tqdm import tqdm
 
 from .dld import distance_int_list
 from .dld import edit_sequence_int_list, EditOp
 from .ts import strip_common_head_and_tail
+
+
+def _quote_shell_argument(argument: str) -> str:
+    if os.name == "nt":
+        return subprocess.list2cmdline([argument])
+    return shlex.quote(argument)
 
 
 class DummyProgressBar:
@@ -47,29 +56,33 @@ def do_listing_pyplot_font_names():
 def do_apply_preprocessors(preprocessors: List[str], target_file: str, temp_dir: str) -> str:
     if len(preprocessors) == 1:
         try:
-            cmd = " ".join([preprocessors[0], target_file])
+            cmd = " ".join([preprocessors[0], _quote_shell_argument(target_file)])
             r = subprocess.check_output(cmd, shell=True)
             doc = r.decode("utf-8")
             return doc
-        except Exception as e:
-            sys.exit("Error in preprocessing a file: %s" % repr(target_file))
-            raise e
+        except (OSError, subprocess.CalledProcessError, UnicodeDecodeError) as e:
+            raise SystemExit("Error in preprocessing a file: %s\n%s" % (repr(target_file), e)) from e
 
     base_name = os.path.basename(target_file)
-    tmp_file = os.path.join(temp_dir, base_name)
-    with open(target_file, "rb") as inp:
-        tmp_file_content: bytes = inp.read()
-    for prep in preprocessors:
-        with open(tmp_file, "wb") as outp:
-            outp.write(tmp_file_content)
+    target_temp_dir = tempfile.mkdtemp(prefix="dendro-text-", dir=temp_dir)
+    tmp_file = os.path.join(target_temp_dir, base_name)
+    try:
+        with open(target_file, "rb") as inp:
+            tmp_file_content: bytes = inp.read()
+        for prep in preprocessors:
+            with open(tmp_file, "wb") as outp:
+                outp.write(tmp_file_content)
+            try:
+                cmd = " ".join([prep, _quote_shell_argument(tmp_file)])
+                tmp_file_content = subprocess.check_output(cmd, shell=True)
+            except (OSError, subprocess.CalledProcessError) as e:
+                raise SystemExit("Error in preprocessing a file: %s\n%s" % (repr(target_file), e)) from e
         try:
-            cmd = " ".join([prep, tmp_file])
-            tmp_file_content = subprocess.check_output(cmd, shell=True)
-        except Exception as e:
-            sys.exit("Error in preprocessing a file: %s" % repr(target_file))
-            raise e
-    doc = tmp_file_content.decode("utf-8")
-    return doc
+            return tmp_file_content.decode("utf-8")
+        except UnicodeDecodeError as e:
+            raise SystemExit("Error in preprocessing a file: %s\n%s" % (repr(target_file), e)) from e
+    finally:
+        shutil.rmtree(target_temp_dir, ignore_errors=True)
 
 
 def do_listing_in_order_of_increasing_distance(
@@ -172,4 +185,3 @@ def do_diff(
                     lsep = lend + sep + lbeg
                     rsep = rend + sep + rbeg
                     write("%s%s%s%s%s%s%s%s" % (lbeg, lsep.join(lws), lend, sep, rbeg, rsep.join(rws), rend, sep))
-

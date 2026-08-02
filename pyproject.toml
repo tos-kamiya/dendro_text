@@ -27,6 +27,11 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[dependency-groups]
+dev = [
+    "tox>=4.0",
+]
+
 [project.readme]
 file = "README-pypi.md"
 content-type = "text/markdown"

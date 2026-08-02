@@ -1,6 +1,8 @@
 import unittest
+from contextlib import redirect_stderr
+from io import StringIO
 
-from dendro_text.ts import text_split_by_char_type, strip_common_head_and_tail, normalize_block_name
+from dendro_text.ts import normalize_block_name, strip_common_head_and_tail, text_split, text_split_by_char_type
 
 
 class TestTextSplit(unittest.TestCase):
@@ -10,6 +12,14 @@ class TestTextSplit(unittest.TestCase):
         self.assertTrue("abc" in doc)
         self.assertTrue("種類" in doc)
         self.assertTrue("。" in doc)
+
+    def test_unknown_lexer_falls_back_with_warning(self):
+        stderr = StringIO()
+        with redirect_stderr(stderr):
+            doc = text_split("abc 123", "input.unknown-extension")
+
+        self.assertEqual(doc, ["abc", " ", "123"])
+        self.assertIn("Lexer not found for file", stderr.getvalue())
 
 
 class TestStripCommonHeadAndTail(unittest.TestCase):

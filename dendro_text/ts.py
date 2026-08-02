@@ -99,7 +99,7 @@ def text_split(text: str, filename: str) -> List[str]:
     try:
         lexer = pygments.lexers.get_lexer_for_filename(filename)
     except pygments.util.ClassNotFound:
-        print("> Warning: Lexer not found for file: " % filename, file=sys.stderr)
+        print("> Warning: Lexer not found for file: %s" % filename, file=sys.stderr)
         return text_split_by_char_type(text)  # fall back
 
     tokens = lexer.get_tokens(text)
