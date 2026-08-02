@@ -42,6 +42,16 @@ class TestDoApplyPreProcessors(unittest.TestCase):
         r = do_apply_preprocessors(["cat"], target_file, tempd)
         self.assertEqual(r, "content\n")
 
+    def test_multiple_preprocessors_with_filename_with_spaces(self):
+        tempd = self.temp_dir.name
+        target_file = path.join(tempd, "input file.txt")
+        with open(target_file, "w") as outp:
+            outp.write("a B c\n")
+
+        preps = ["awk '{ print toupper($0) }'", "awk '/^A/'"]
+        r = do_apply_preprocessors(preps, target_file, tempd)
+        self.assertEqual(r, "A B C\n")
+
 
 if __name__ == "__main__":
     unittest.main()
